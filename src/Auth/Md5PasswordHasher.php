@@ -1,5 +1,5 @@
 <?php
-/*-----8<--------------------------------------------------------------------
+/**-----8<--------------------------------------------------------------------
  *
  * BEdita - a semantic content management framework
  *
@@ -18,17 +18,35 @@
  *
  *------------------------------------------------------------------->8-----
  */
-namespace BEdita\Model\Entity;
+namespace BEdita\Auth;
 
-use Cake\ORM\Entity;
-use Cake\Auth\DefaultPasswordHasher;
+use Cake\Auth\AbstractPasswordHasher;
 
-class User extends Entity {
+/**
+ * Md5 hasher class
+ *
+ * Used to backward compatibility with BEdita 3.x password algorithm
+ */
+class Md5PasswordHasher extends AbstractPasswordHasher {
 
-    protected $_hidden = ['passwd'];
-
-    protected function _setPasswd($password) {
-        return (new DefaultPasswordHasher)->hash($password);
+    /**
+     * Return hash of password
+     *
+     * @param string $password
+     * @return string
+     */
+    public function hash($password) {
+        return md5($password);
     }
 
+    /**
+     * Check md5 password against hashed string
+     *
+     * @param string $password
+     * @param string $hashed
+     * @return bool
+     */
+    public function check($password, $hashed) {
+        return md5($password) === $hashed;
+    }
 }

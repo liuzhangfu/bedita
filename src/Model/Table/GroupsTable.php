@@ -1,5 +1,5 @@
 <?php
-/*-----8<--------------------------------------------------------------------
+/**-----8<--------------------------------------------------------------------
  *
  * BEdita - a semantic content management framework
  *
@@ -18,17 +18,16 @@
  *
  *------------------------------------------------------------------->8-----
  */
-namespace BEdita\Model\Entity;
+namespace BEdita\Model\Table;
 
-use Cake\ORM\Entity;
-use Cake\Auth\DefaultPasswordHasher;
+use Cake\ORM\Table;
+use Cake\Model\Behavior\TimestampBehavior;
 
-class User extends Entity {
+class GroupsTable extends Table {
 
-    protected $_hidden = ['passwd'];
-
-    protected function _setPasswd($password) {
-        return (new DefaultPasswordHasher)->hash($password);
+    public function initialize(array $config) {
+        $this->displayField('name');
+        $this->addBehavior('Timestamp');
     }
 
 }
