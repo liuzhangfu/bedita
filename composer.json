@@ -16,11 +16,14 @@
     },
     "autoload": {
         "psr-4": {
-            "BEdita\\": "src",
-            "BEdita\\Test\\": "tests",
-            "": "./plugins"
+            "BEdita\\": "src"
         }
     },
+	"autoload-dev": {
+		"psr-4": {
+			"BEdita\\Test\\": "tests"
+		}
+	},
     "scripts": {
         "post-install-cmd": "BEdita\\Console\\Installer::postInstall"
     }
