@@ -50,21 +50,11 @@ class UsersTable extends Table {
         $query->formatResults(function($results) {
             return $results->map(function($row) {
                 $groupsList = [];
-                if (is_object($row)) {
-                    if ($row->groups) {
-                        foreach ($row->groups as $g) {
-                            $groupsList[] = $g->name;
-                        }
-                        $row->set('groupsList', $groupsList);
+                if (isset($row['groups'])) {
+                    foreach ($row['groups'] as $g) {
+                        $groupsList[] = $g['name'];
                     }
-                // else it's an array (Entity was not hydrated)
-                } else {
-                    if (!empty($row['groups'])) {
-                        foreach ($row['groups'] as $g) {
-                            $groupsList[] = $g['name'];
-                        }
-                        $row['groupsList'] = $groupsList;
-                    }
+                    $row['groupsList'] = $groupsList;
                 }
                 return $row;
             });

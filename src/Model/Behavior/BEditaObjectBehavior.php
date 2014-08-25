@@ -51,18 +51,12 @@ class BEditaObjectBehavior extends Behavior {
         // flat object chain
         foreach ($this->table->getObjectChain() as $tableName) {
             $property = Inflector::underscore(Inflector::singularize($tableName));
-            // if $row is an \Cake\ORM\Entity
-            if (is_object($row)) {
-                if ($row->$property) {
-                    $row->set($row->$property->toArray(), ['guard' => false]);
-                    $row->unsetProperty($property);
+            if (isset($row[$property])) {
+                $values = (is_object($row[$property])) ? $row[$property]->toArray() : $row[$property];
+                foreach ($values as $key => $val) {
+                    $row[$key] = $val;
                 }
-            // else it's an array (Entity was not hydrated)
-            } else {
-                if (isset($row[$property])) {
-                    $row += $row[$property];
-                    unset($row[$property]);
-                }
+                unset($row[$property]);
             }
         }
         return $row;
