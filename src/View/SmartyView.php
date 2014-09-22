@@ -88,7 +88,7 @@ class SmartyView extends View {
 
         $this->__viewFile = $viewFile;
         $smartyData = null;
-        // if element assign $dataForView in specific scope
+        // if element it assigns $dataForView to specific scope
         if ($this->_currentType == static::TYPE_ELEMENT) {
             $smartyData = $this->smarty->createData();
         }

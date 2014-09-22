@@ -47,8 +47,8 @@ $config = [
 		'cssBaseUrl' => 'css/',
 		'jsBaseUrl' => 'js/',
 		'paths' => [
-			'plugins' => [ROOT . '/plugins/'],
-			'templates' => [APP . 'Template/'],
+			'plugins' => [ROOT . DS . 'plugins' . DS],
+			'templates' => [APP . 'Template' . DS],
 		],
 	],
 
@@ -129,11 +129,11 @@ $config = [
  * - `log` - boolean - Whether or not you want exceptions logged.
  * - `exceptionRenderer` - string - The class responsible for rendering
  *   uncaught exceptions.  If you choose a custom class you should place
- *   the file for that class in src/Lib/Error. This class needs to implement a
+ *   the file for that class in src/Error. This class needs to implement a
  *   render method.
  * - `skipLog` - array - List of exceptions to skip for logging. Exceptions that
  *   extend one of the listed exceptions will also be skipped for logging.
- *   E.g.: `'skipLog' => ['Cake\Error\NotFoundException', 'Cake\Error\UnauthorizedException']`
+ *   E.g.: `'skipLog' => ['Cake\Network\Exception\NotFoundException', 'Cake\Network\Exception\UnauthorizedException']`
  */
 	'Error' => [
 		'errorLevel' => E_ALL & ~E_DEPRECATED,
@@ -230,7 +230,7 @@ $config = [
 			* following line could boost the speed at which schema metadata is
 			* fetched from the database. It can also be set directly with the
 			* mysql configuration directive 'innodb_stats_on_metadata = 0'
-			* which is the recommended value in production enviroments
+			* which is the recommended value in production environments
 			*/
 			//'init' => ['SET GLOBAL innodb_stats_on_metadata = 0'],
 		],

@@ -5,9 +5,10 @@
     "type": "project",
     "license": "LGPL",
     "require": {
-        "php": ">=5.4.19",
+        "php": ">=5.4.16",
         "cakephp/cakephp": "3.0.*-dev",
         "mobiledetect/mobiledetectlib": "2.*",
+        "cakephp/debug_kit": "3.0.*-dev",
         "smarty/smarty": "3.1.*"
     },
     "require-dev": {
@@ -26,5 +27,10 @@
 	},
     "scripts": {
         "post-install-cmd": "BEdita\\Console\\Installer::postInstall"
-    }
+    },
+	"config" : {
+		"bin-dir" : "bin"
+	},
+	"minimum-stability" : "dev",
+	"prefer-stable": true
 }

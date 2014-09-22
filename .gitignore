@@ -16,7 +16,8 @@
 /vendor/*
 !/vendor/smartyPlugins
 /tmp/*
-/logs
+/logs/*
+/plugins/*
 /config/app.php
 /composer.lock
 /phpunit.xml

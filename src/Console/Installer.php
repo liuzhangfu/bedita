@@ -59,7 +59,7 @@ class Installer {
  * This is not the most secure default, but it gets people up and running quickly.
  *
  * @param string $dir The application's root directory.
- * @param Composer\IO\IOInterface $io IO interface to write to console.
+ * @param \Composer\IO\IOInterface $io IO interface to write to console.
  * @return void
  */
 	public static function setFolderPermissions($dir, $io) {

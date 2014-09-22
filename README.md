@@ -21,12 +21,14 @@ $ composer update
 
 In `config/app.php` edit the `$config['Datasources']['default']` array with your database connection data.
 
-NB. For now the db has to be initialized using schema and data in 3.4.0 or greater version
+**Note**
+* For now the db has to be initialized using schema and data in 3.4.0 or greater version
+* DebugKit will be installed by composer. By default DebugKit will use SQLite so *you need to install* ```pdo_sqlite``` or conifgure DebugKit to use other.
 
 ---
 
 BEdita is a software to create, manage content and organize it with semantic rules.
-BEdita is a modular framework that features a back-end Content Management System out-of-the-box.
+BEdita is a modular framework that featur\es a back-end Content Management System out-of-the-box.
 It is an integrated environment that inherits all the features of the libraries and tools it includes,
 like [CakePHP](http://cakephp.org/), [JQuery](http://jquery.com/) and [Smarty](http://www.smarty.net/).
 
@@ -49,4 +51,3 @@ BEdita employs a licensing scheme [LGPL](/bedita/bedita/blob/master/LICENSE.LGPL
 
  * BEdita at github:
    https://github.com/bedita/bedita
-
