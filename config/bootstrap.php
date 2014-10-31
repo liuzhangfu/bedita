@@ -47,6 +47,7 @@ use Cake\Network\Request;
 use Cake\Routing\DispatcherFactory;
 use Cake\Utility\Inflector;
 use Cake\Utility\Security;
+use BEdita\Lib\Configure\BeConfigure;
 
 /**
  * Read configuration file and inject configuration into various
@@ -167,6 +168,8 @@ Request::addDetector('tablet', function($request) {
  */
 
 Plugin::load('DebugKit', ['bootstrap' => true]);
+
+BeConfigure::initConfig();
 
 /**
  * Connect middleware/dispatcher filters.
