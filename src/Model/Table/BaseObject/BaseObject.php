@@ -25,6 +25,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Event\Event;
 use Cake\ORM\Entity;
 use Cake\Validation\Validator;
+use Cake\Core\Configure;
 
 /**
  * Abstract base class for BEdita object types.
@@ -38,6 +39,14 @@ abstract class BaseObject extends ObjectsTable {
      * @var string
      */
     protected $objectType = null;
+
+    /**
+     * The object type id
+     * It is initialized in self::initialize() using configuration
+     *
+     * @var integer
+     */
+    protected $objectTypeId = null;
 
     /**
      * Contains the list of main object type tables.
@@ -58,6 +67,7 @@ abstract class BaseObject extends ObjectsTable {
      */
     public function initialize(array $config) {
         parent::initialize($config);
+        $this->objectTypeId();
         $this->addBehavior('BEditaObject');
         $this->initChain();
     }
@@ -100,17 +110,38 @@ abstract class BaseObject extends ObjectsTable {
     }
 
     /**
-     * Return the object type id
+     * Return the object type
      *
-     * @return null|integer
+     * @return string
+     */
+    public function objectType() {
+        return $this->objectType;
+    }
+
+    /**
+     * Return the object type id
+     * If self::objectTypeId is invalid (null or not numeric) then set it too
+     *
+     * If self::objectTypeId is set return it
+     * else try to load it from configuration (and set self::objectTypeId)
+     * else try to load it from database (and set self::objectTypeId)
+     *
+     * @return integer|null
      */
     public function objectTypeId() {
-        // temporary get object type id from db then it will be in config
-        $objectTypes = TableRegistry::get('ObjectTypes');
-        $res = $objectTypes->find()
-            ->where(['name' => $this->objectType])
-            ->first();
-        return ($res)? $res->id : null;
+        if (!$this->objectTypeId || !is_numeric($this->objectTypeId)) {
+            // try to read from config
+            $this->objectTypeId = Configure::read('objectTypes.' . $this->objectType . '.id');
+            // if missing in configuration try to load from db
+            if (!$this->objectTypeId) {
+                $objectTypes = TableRegistry::get('ObjectTypes');
+                $res = $objectTypes->find()
+                    ->where(['name' => $this->objectType])
+                    ->first();
+                $this->objectTypeId = ($res) ? $res->id : null;
+            }
+        }
+        return $this->objectTypeId;
     }
 
 }
