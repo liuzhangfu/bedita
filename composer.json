@@ -22,15 +22,13 @@
     },
 	"autoload-dev": {
 		"psr-4": {
-			"BEdita\\Test\\": "tests"
+			"BEdita\\Test\\": "tests",
+			"Cake\\Test\\Fixture\\": "./vendor/cakephp/cakephp/tests/Fixture"
 		}
 	},
     "scripts": {
         "post-install-cmd": "BEdita\\Console\\Installer::postInstall"
-    },
-	"config" : {
-		"bin-dir" : "bin"
-	},
+    }
 	"minimum-stability" : "dev",
 	"prefer-stable": true
 }

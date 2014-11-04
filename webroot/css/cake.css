@@ -133,8 +133,17 @@ button {
   color: rgba(0, 0, 0, 0.54);
 }
 
+select[multiple] {
+  min-height:150px;
+  background: none;
+}
+input[type=checkbox],
+input[type=radio] {
+  margin-right: 0.5em;
+}
+
 .error label, .error label.error {
-    color: #C3232D;
+  color: #C3232D;
 }
 
 div.message {
@@ -284,19 +293,21 @@ pre {
   text-decoration: underline;
 }
 
-
 .home header {
-  height:710px;
+  width: 100%;
+  height: 85%;
+  position: relative;
+  display: table;
 }
 
 .home h1 {
-  font-family: "Gill Sans", "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
 }
 
 .home header .header-image {
-  margin: auto;
-  text-align:center;
-  margin-top:100px;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
 }
 
 .home header h1 {

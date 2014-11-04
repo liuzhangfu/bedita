@@ -65,7 +65,7 @@ class BeConfigure  {
         }
 
         Cache::write('beConfig', $configurations);
-        return $cachedConfig;
+        return $configurations;
     }
 
 }

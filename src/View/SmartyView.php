@@ -53,8 +53,16 @@ class SmartyView extends View {
      */
     protected $_ext = '.tpl';
 
-    public function __construct (Request $request = null, Response $response = null, EventManager $eventManager = null, array $viewOptions = [])    {
-        parent::__construct($request, $response, $eventManager, $viewOptions);
+    /**
+     * Initialization hook method.
+     * Instance Smarty class.
+     *
+     * For e.g. use this method to load a helper for all views:
+     * `$this->loadHelper('Html');`
+     *
+     * @return void
+     */
+    public function initialize() {
         $this->templateDir = Configure::read('App.paths.templates');
         $this->smarty = new Smarty();
         $this->smarty->setCompileDir(TMP . 'smarty' . DS . 'compile' . DS);

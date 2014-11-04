@@ -33,41 +33,38 @@ use Cake\Event\Event;
  */
 class AppController extends Controller {
 
-	/**
-	 * Components this controller uses.
-	 *
-	 * Component names should not include the `Component` suffix. Components
-	 * declared in subclasses will be merged with components declared here.
-	 *
-	 * @var array
-	 */
-	public $components = [
-		'Flash',
-		'Session',
-		'Auth' => [
-			'authenticate' => [
-				'BEdita' => [
-					'fields' => [
-						'username' => 'userid',
-						'password' => 'passwd'
-					],
-					'scope' => [
-						'Users.valid' => true
-					],
-					'contain' => ['Groups'],
-					'passwordHasher' => [
-						'className' => 'Fallback',
-						'hashers' => ['Default', 'Md5']
-					]
-				]
-			],
-			'authorize' => ['Group'],
-			'unauthorizedRedirect' => '/users/login'
-		]
-	];
-	
-	public function beforeFilter(Event $event) {
-		parent::beforeFilter($event);
-		$this->viewClass = 'Smarty';
-	}
+    /**
+     * Initialization hook method.
+     *
+     * Use this method to add common initialization code like loading components.
+     *
+     * @return void
+     */
+    public function initialize() {
+        $this->loadComponent('Flash');
+        $this->loadComponent('Session');
+        $this->loadComponent('Auth', [
+            'authenticate' => [
+                'BEdita' => [
+                    'fields' => [
+                        'username' => 'userid',
+                        'password' => 'passwd'
+                    ],
+                    'scope' => [
+                        'Users.valid' => true
+                    ],
+                    'contain' => ['Groups'],
+                    'passwordHasher' => [
+                        'className' => 'Fallback',
+                        'hashers' => ['Default', 'Md5']
+                    ]
+                ]
+            ],
+            'authorize' => ['Group'],
+            'unauthorizedRedirect' => '/users/login'
+        ]);
+
+        $this->viewClass = 'Smarty';
+    }
+
 }
