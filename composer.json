@@ -28,7 +28,7 @@
 	},
     "scripts": {
         "post-install-cmd": "BEdita\\Console\\Installer::postInstall"
-    }
+    },
 	"minimum-stability" : "dev",
 	"prefer-stable": true
 }
