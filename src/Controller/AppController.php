@@ -42,7 +42,6 @@ class AppController extends Controller {
      */
     public function initialize() {
         $this->loadComponent('Flash');
-        $this->loadComponent('Session');
         $this->loadComponent('Auth', [
             'authenticate' => [
                 'BEdita' => [
