@@ -21,7 +21,6 @@
 namespace BEdita\Controller;
 
 use Cake\Controller\Controller;
-use Cake\Event\Event;
 
 /**
  * Application Controller
