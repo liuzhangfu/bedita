@@ -23,6 +23,9 @@
         <div class="header-help">
             <span>{$this->Html->link('BEdita', 'http://bedita.com')}</span>
             <span>{$this->Html->link('documentation', 'http://docs.bedita.com')}</span>
+            {if $this->request->session()->check('Auth.User')}
+                <span>{$this->Html->link('logout', '/users/logout')}</span>
+            {/if}
         </div>
     </header>
     <div id="container">
