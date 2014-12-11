@@ -167,7 +167,6 @@ Request::addDetector('tablet', function ($request) {
  * Plugin::load('DebugKit'); //Loads a single plugin named DebugKit
  *
  */
-
 Plugin::load('DebugKit', ['bootstrap' => true]);
 
 BeConfigure::initConfig();
@@ -175,7 +174,6 @@ BeConfigure::initConfig();
 /**
  * Connect middleware/dispatcher filters.
  */
-
 DispatcherFactory::add('Asset');
 DispatcherFactory::add('Routing');
 DispatcherFactory::add('ControllerFactory');
