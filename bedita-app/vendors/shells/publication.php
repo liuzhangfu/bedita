@@ -41,6 +41,7 @@ Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidu
         if (isset($this->params['d'])) {
             $this->options['depth'] = $this->params['d'];
         }
+        $this->options['depth'] -= 1;
 
         if (isset($this->params['ns'])) {
             $this->options['sublevel-sections'] = $this->params['ns'];

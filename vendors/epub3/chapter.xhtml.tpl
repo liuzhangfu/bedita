@@ -60,11 +60,11 @@
 
 {if !empty($data.subchapters)}
 {foreach $data.subchapters as $subsection}
+	<header><h2>{$subsection.title}</h2></header>
 	{foreach $subsection.contents as $a}
 		<article id="{$a.nickname}">
 			<h1>{$a.title}</h1>
 			{$a.body}
-			{* TODO: understand and fix *}
 			{if !empty($a.RelatedObject)}
 			{foreach from=$a.RelatedObject item=item}
 			{$item.switch}:
