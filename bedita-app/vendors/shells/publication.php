@@ -30,40 +30,29 @@ Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidu
         'leaf-documents' => 1
     );
 
-    private $objectFakeId = 1;
-
     public function create() {
-
         $this->hr();
-
         $this->trackInfo('Create start');
-
         if (isset($this->params['d'])) {
             $this->options['depth'] = $this->params['d'];
         }
         $this->options['depth'] -= 1;
-
         if (isset($this->params['ns'])) {
             $this->options['sublevel-sections'] = $this->params['ns'];
         }
-
         if (isset($this->params['nd'])) {
             $this->options['leaf-documents'] = $this->params['nd'];
         }
-
         $optionsString = '';
         foreach ($this->options as $key => $value) {
             $optionsString .= ' | ' . $key . ': ' . $value;
         }
         $this->trackInfo('Options: ' . $optionsString);
-
         try {
             $this->createPublication();           
         } catch(BeditaException $e) {
             $this->trackInfo('Exception: ' . $e->getMessage());
         }
-
-        // end
         $this->trackInfo('Create end');
     }
 

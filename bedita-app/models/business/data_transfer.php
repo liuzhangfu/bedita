@@ -101,8 +101,27 @@ class DataTransfer extends BEAppModel
                 'GeoTag'
             )
         ),
+        'contain-media' => array(
+            'BEObject' => array(
+                'RelatedObject',
+                'ObjectProperty',
+                'LangText',
+                'Annotation',
+                'Category',
+                'GeoTag'
+            ),
+            'Stream'
+        ),
         'media' => array(),
         'customProperties' => array()
+    );
+
+    protected $mediaModels = array(
+        'Image',
+        'Video',
+        'Audio',
+        'Application',
+        'BEFile'
     );
 
     protected $result = array(
@@ -285,7 +304,7 @@ class DataTransfer extends BEAppModel
         // return type - default JSON
         $this->export['returnType'] = (!empty($options['returnType'])) ? $options['returnType'] : 'JSON';
         $this->export['filename'] = (!empty($options['filename'])) ? $options['filename'] : NULL;
-        $this->export['destMediaRoot'] = (!empty($options['destMediaRoot'])) ? $options['destMediaRoot'] : "";
+        $this->export['destMediaRoot'] = (!empty($options['destMediaRoot'])) ? $options['destMediaRoot'] : 'TMP' . DS . 'media-export';
         $this->trackInfo('START');
         try {
             $this->trackDebug('1 area/section/other objects data');
@@ -1245,9 +1264,10 @@ class DataTransfer extends BEAppModel
                 } else {
                     throw new BeditaException('Model not found per objecttypeId "' . $objectTypeId . '"');
                 }
+                $containLabel = ($this->isMedia($model)) ? 'contain-media' : 'contain';
                 $relatedObjModel = ClassRegistry::init($model);
                 $relatedObjModel->contain(
-                    $this->export['contain']
+                    $this->export[$containLabel]
                 );
                 $relatedObj = $relatedObjModel->findById($relatedObjectId);
                 $this->prepareObjectForExport($relatedObj);
@@ -1308,9 +1328,10 @@ class DataTransfer extends BEAppModel
                     } else {
                         $model = $conf->objectTypesExt[$objectTypeId]['model'];
                     }
+                    $containLabel = ($this->isMedia($model)) ? 'contain-media' : 'contain';
                     $objModel = ClassRegistry::init($model);
                     $objModel->contain(
-                        $this->export['contain']
+                        $this->export[$containLabel]
                     );
                     $obj = $objModel->findById($objectId);
                     $this->prepareObjectForExport($obj);
@@ -1318,6 +1339,10 @@ class DataTransfer extends BEAppModel
             }
         }
         $tree->unbindModel(array('belongsTo' => array('BEObject')));
+    }
+
+    private function isMedia($model) {
+        return in_array($model, $this->mediaModels);
     }
 
     /* file utils */

@@ -11,8 +11,7 @@
 	{foreach $data.contents as $a}
 		<article id="{$a.nickname}">
 			<h1>{$a.title}</h1>
-			{$a.body}
-			{* TODO: understand and fix *}
+			{$a.body|default:''}
 			{if !empty($a.RelatedObject)}
 			{foreach from=$a.RelatedObject item=item}
 			{$item.switch}:
@@ -64,7 +63,7 @@
 	{foreach $subsection.contents as $a}
 		<article id="{$a.nickname}">
 			<h1>{$a.title}</h1>
-			{$a.body}
+			{$a.body|default:''}
 			{if !empty($a.RelatedObject)}
 			{foreach from=$a.RelatedObject item=item}
 			{$item.switch}:
