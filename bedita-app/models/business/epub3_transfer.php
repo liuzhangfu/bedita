@@ -48,7 +48,8 @@ class Epub3Transfer extends BEAppModel
         ),
         'manifest' => null,
         'treeDepth' => 0,
-        'rootIds'
+        'rootIds' => array(),
+        'media' => array()
     );
 
     protected $smarty = null;    
@@ -81,11 +82,29 @@ class Epub3Transfer extends BEAppModel
         $this->trackInfo('temporary folder: ' . $this->export['folders']['tmp']);
         $this->trackInfo('filename: ' . $this->export['filename']);
         try {
+            // tmp folder
+            if(!is_dir($this->export['folders']['tmp'])) {
+                if(@mkdir($this->export['folders']['tmp'], 0755, true) === false) {
+                    throw new BeditaException('Unable to create ' . $this->export['folders']['tmp']);
+                }
+            }
+            // OEBPS folder
+            $this->export['folders']['oebps'] = $this->export['folders']['tmp'] . DS . 'OEBPS';
+            if(@mkdir($this->export['folders']['oebps'], 0755, true) === false) {
+                throw new BeditaException('Unable to create ' . $this->export['folders']['oebps']);
+            }
+            // media folder
+            $this->export['folders']['media'] = $this->export['folders']['oebps'] . DS . 'media';
+            if(@mkdir($this->export['folders']['media'], 0755, true) === false) {
+                throw new BeditaException('Unable to create ' .$this->export['folders']['media']);
+            }
+            // getting export data
             $dataTransfer = ClassRegistry::init('DataTransfer');
             $options = array(
-                'returnType' => 'ARRAY'
+                'returnType' => 'ARRAY',
+                'destMediaRoot' => $this->export['folders']['media']
             );
-            $this->export['source']['data'] = $dataTransfer->export($objects, array('returnType' => 'ARRAY'));
+            $this->export['source']['data'] = $dataTransfer->export($objects, $options);
             $this->validate();
             if (!empty($this->export['source']['data']['tree']['roots'])) {
                 $this->export['rootIds'] = $this->export['source']['data']['tree']['roots'];
@@ -135,12 +154,6 @@ class Epub3Transfer extends BEAppModel
             }
             // set resource path -> img, tpl, css,....
             $this->export['folders']['resource'] = CAKE_CORE_INCLUDE_PATH . DS . 'vendors' . DS . 'epub3' . DS;
-            // 1. create temporary folder $this->export['folders']['tmp']
-            if(!is_dir($this->export['folders']['tmp'])) {
-                if(@mkdir($this->export['folders']['tmp'], 0755, true) === false) {
-                    throw new BeditaException('Unable to create ' . $this->export['folders']['tmp']);
-                }
-            }
             // 2. create epub3 files structure
             // 2.1 mimetype
             if(copy($this->export['folders']['resource'] . 'mimetype', $this->export['folders']['tmp'] . DS . 'mimetype') === false) {
@@ -155,16 +168,8 @@ class Epub3Transfer extends BEAppModel
             if(copy($this->export['folders']['resource'] . 'container.xml', $this->export['folders']['metainf'] . DS . 'container.xml') === false) {
                 throw new BeditaException('Unable to create ' . $this->export['folders']['metainf'] . DS . 'container.xml');
             }
-            // 2.4 OEBPS folder
-            $this->export['folders']['oebps'] = $this->export['folders']['tmp'] . DS . 'OEBPS';
-            if(@mkdir($this->export['folders']['oebps'], 0755, true) === false) {
-                throw new BeditaException('Unable to create ' . $this->export['folders']['oebps']);
-            }
-            // 2.5 media folder
-            $this->export['folders']['media'] = $this->export['folders']['oebps'] . DS . 'media';
-            if(@mkdir($this->export['folders']['media'], 0755, true) === false) {
-                throw new BeditaException('Unable to create ' .$this->export['folders']['media']);
-            }
+            // 2.4 OEBPS folder - done previously
+            // 2.5 media folder - done previously
             $this->export['folders']['mediaImg'] = $this->export['folders']['media'] . DS . 'img';
             if(@mkdir($this->export['folders']['mediaImg'], 0755, true) === false) {
                 throw new BeditaException('Unable to create ' . $this->export['folders']['mediaImg']);
@@ -215,35 +220,20 @@ class Epub3Transfer extends BEAppModel
                     }
                 }
             }
-            // $media = array();
-            // if(!empty($this->export['parts'])) {
-            //     foreach($this->export['parts'] as $p) {
-            //         foreach($p['chapters'] as $chapter) {
-            //             $this->copyMedia($chapter,$this->export['folders']['media'], $media);
-            //         }
-            //     }
-            // } else {
-            //     foreach($this->export['chapters'] as $chapter) {
-            //         $this->copyMedia($chapter,$this->export['folders']['media'], $media);
-            //     }
-            // }
-            // $uniqueMedia = $media;
-            // for ($i = 0; $i < count($media); $i++) {
-            //     $id = $media[$i]['id'];
-            //     for ($j = $i+1; $j < count($media); $j++) {
-            //         if($id === $media[$j]['id']) {
-            //             unset($uniqueMedia[$j]);                    
-            //         }               
-            //     }
-            // }
-            // $this->export['media'] = $uniqueMedia;
-            // $this->export['parts'] = $parts;
-            // $this->export['chapters'] = $this->export['chapters'];
-            // $this->export['uniqid'] = uniqid();
-            // debug($this->export['destination']['data']);
+            // media
+            $this->export['uniqueMedia'] = array();
+            $mediaRoot = Configure::read('mediaRoot');
+            foreach ($this->export['media'] as $id => $media) {
+                if (!in_array($id, array_keys($this->export['uniqueMedia']))) {
+                    $this->export['uniqueMedia'][$id] = $media;
+                }
+            }
             // the first publication
             $data = $epubs[$this->export['firstRootId']];
+            // manifest
             $data['manifest'] = $this->export['manifest'];
+            // media
+            $data['media'] = $this->export['uniqueMedia'];
             //2.7 OEBPS/Content.opf
             $this->applyTemplate('content.opf.tpl', $data, $this->export['folders']['oebps'] . DS . 'Content.opf');
             //2.8 OEBPS/nav.xhtml
@@ -381,8 +371,16 @@ class Epub3Transfer extends BEAppModel
             $chapters[$k]['filename'] = $filenamePrefix . 'chapter_' . $chapters[$k]['name'];
             $chapters[$k]['title'] = $section['title'];
             $chapters[$k]['contents'] = !empty($section['childContents'])?  $section['childContents'] : array();
-            if(!empty($section['childSections']) ) {
+            if (!empty($section['childSections']) ) {
                 $chapters[$k]['subchapters'] = $this->chapters($section['childSections'], $counter, $filenamePrefix);
+            }
+            if (!empty($section['childContents'])) {
+                foreach ($section['childContents'] as &$content) {
+                    if (!empty($content['uri'])) {
+                        $content['uri'] = '.' . DS . 'media' . $content['uri']; // fix relative uri for media contents
+                        $this->export['media'][$content['id']] = $content;
+                    }
+                }
             }
         }
         return $chapters;

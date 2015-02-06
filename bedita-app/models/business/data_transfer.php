@@ -1357,14 +1357,16 @@ class DataTransfer extends BEAppModel
     private function copyFileToFolder($sourceBasePath, $destBasePath, $source) {
         $tmp = explode(DS, $source);
         $dirs = array();
-        $dirsString = "";
         foreach($tmp as $dir) {
             if (!empty($dir)) {
-                $dirsString.= DS . $dir;
                 $dirs[] = $dir;
             }
         }
-        $name = array_pop($tmp);
+        $name = array_pop($dirs);
+        $dirsString = "";
+        foreach ($dirs as $dir) {
+            $dirsString.= DS . $dir;
+        }
         $pointPosition = strrpos($name,".");
         $filename = $tmpname = substr($name, 0, $pointPosition);
         $ext = substr($name, $pointPosition);
@@ -1382,8 +1384,8 @@ class DataTransfer extends BEAppModel
         }
         // save new name (passed by reference)
         $name = $filename . $ext;
-        $destination = $destBasePath . DS . $dirsString . DS . $name;
-        if (!copy($sourceBasePath . DS . $source, $destination)) {
+        $destination = $destBasePath . $dirsString . DS . $name;
+        if (!copy($sourceBasePath . $source, $destination)) {
             $this->trackError('Error copying file "' . $sourceBasePath . DS . $source . '" to "' . $destination);
             //$this->trackWarn('Error copying file "' . $sourceBasePath . DS . $source . '" to "' . $destination);
             //throw new BeditaException('Error copying file "' . $sourceBasePath . DS . $source . '" to "' . $destination);
