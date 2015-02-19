@@ -28,14 +28,18 @@
                 name = $('input[name="data[User][realname]"]').val(),
                 email = $('input[name="data[User][email]"]').val();
 
+            var reqData = {
+                'id': id,
+                'name': name,
+                'email': email,
+            };
+
+            addCsrfToken(reqData, '#userForm');
+
             $that.BEmodal({
                 title: '',
                 destination: '{$html->url(['controller' => 'addressbook', 'action' => 'similarCards'])}',
-                requestData: {
-                    'id': id,
-                    'name': name,
-                    'email': email,
-                }
+                requestData: reqData
             });
 
             $modal
@@ -58,6 +62,7 @@
 </script>
 
 <form action="{$html->url('/users/saveUser')}" method="post" name="userForm" id="userForm" class="cmxform">
+{$beForm->csrf()}
 
 <div class="tab"><h2>{t}User details{/t}</h2></div>
 
@@ -217,6 +222,7 @@
 					{foreach from=$formGroups key=gname item=u}
 					<tr>
 						<td>
+							{$gname = $gname|escape}
 							<input type="checkbox" id="group_{$gname}" name="data[groups][{$gname}]" {if $u == 1}checked="checked"{/if}	onclick="javascript:localUpdateGroupsChecked(this);" />
 							&nbsp;
 							<label id="lgroup{$gname}" for="group{$gname}">{$gname}</label>
