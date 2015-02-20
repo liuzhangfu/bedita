@@ -301,6 +301,9 @@ class Epub3Transfer extends BEAppModel
             }
         }
         foreach ($this->export['source']['data']['objects'] as $obj) {
+        	if (empty($obj['object_type_id'])) {
+        	    $obj['object_type_id'] = Configure::read('objectTypes.' . $obj['objectType'] . '.id');
+        	}
             if ($obj['objectType'] === Configure::read('objectTypes.section.name')) {
                 $obj['parents'][] = $this->export['source']['treeElements'][$obj['id']]['parent'];
             }
@@ -310,10 +313,52 @@ class Epub3Transfer extends BEAppModel
                 } else {
                     $type = 'sectionsChildContents';
                 }
-                foreach ($obj['parents'] as $parentId) {
+                foreach ($obj['parents'] as $parent) {
+                	$parentId = (is_array($parent)) ? $parent['id'] : $parent;
+                	if (empty($this->export['source'][$type])) {
+                		$this->export['source'][$type] = array();
+                		$this->export['source'][$type][$parentId] = array();
+                	}
                     $this->export['source'][$type][$parentId][$obj['id']] = $obj;
                 }
             }
+        }
+        $parentContentPriority = array();
+        $childContents = array();
+        foreach ($this->export['source']['sectionsChildContents'] as $parentId => $children) {
+            foreach ($children as $child) {
+                if (!empty($child['parents'])) {
+                    foreach ($child['parents'] as $childParent) {
+                        if ($childParent['id'] == $parentId) {
+                            if (!empty($childParent['priority'])) {
+                                $parentContentPriority[$parentId][] = array(
+                                    'id' => $child['id'],
+                                	'priority' => $childParent['priority']
+                                );
+                            } else {
+                            	$parentContentPriority[$parentId][] = array(
+                                    'id' => $child['id']
+                                );
+                            }
+                        }
+                    }
+                    $childContents[$child['id']] = $child;
+                }
+            }
+        }
+        foreach ($parentContentPriority as $sectionId => &$contents) {
+            usort($contents, function($a, $b) {
+            	$p1 = (!empty($a['priority'])) ? $a['priority'] : 99999;
+            	$p2 = (!empty($b['priority'])) ? $b['priority'] : 99999;
+            	return $p1 - $p2;
+            });
+        }
+        foreach ($parentContentPriority as $sectionId => $contents) {
+        	$orderedContents = array();
+        	foreach ($contents as $child) {
+        		$orderedContents[] = $childContents[$child['id']];
+        	}
+        	$this->export['source']['sectionsChildContents'][$sectionId] = $orderedContents;
         }
     }
 
@@ -332,11 +377,15 @@ class Epub3Transfer extends BEAppModel
         $sectionsTmp = array();
         foreach ($sections as $section) {
             if (in_array($section['parent'], $keys)) {
-                $this->export['source']['treeElements'][$section['id']] = array(
+            	$sectionItem = array(
                     'id' => $section['id'],
                     'parent' => $section['parent'],
                     'depth' => $subLevel
                 );
+            	if (!empty($section['priority'])) {
+            		$sectionItem['priority'] = $section['priority'];
+            	}
+                $this->export['source']['treeElements'][$section['id']] = $sectionItem;
                 $this->export['source']['treeByLevel']['subLevel-' . $subLevel][] = $this->export['source']['treeElements'][$section['id']];
             } else {
                 $sectionsTmp[] = $section;

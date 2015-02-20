@@ -233,7 +233,7 @@ class BeThumb {
 	    $this->imageInfo["remote"] = ($data['uri'][0] !== "/" && $data['uri'][0] !== DS);
 	    if ($this->imageInfo["remote"]) {
 	        $uriParts = parse_url($data['uri']);
-	        if (!$uriParts || !in_array($uriParts["scheme"], array("http", "https"))) {
+	        if (!$uriParts || (!empty($uriParts["scheme"]) && !in_array($uriParts["scheme"], array("http", "https")))) {
 	            $this->triggerError("'" . $data['uri'] . "' unsupported uri protocol (only http/https)");
 	            $data['error'] = 'notFund';
 	            return false;
