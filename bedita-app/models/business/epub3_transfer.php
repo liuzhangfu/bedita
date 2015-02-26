@@ -357,6 +357,8 @@ class Epub3Transfer extends BEAppModel
                 	$parentId = (is_array($parent)) ? $parent['id'] : $parent;
                 	if (empty($this->export['source'][$type])) {
                 		$this->export['source'][$type] = array();
+                	}
+                	if (empty($this->export['source'][$type][$parentId])) {
                 		$this->export['source'][$type][$parentId] = array();
                 	}
                     $this->export['source'][$type][$parentId][$obj['id']] = $obj;
@@ -386,8 +388,8 @@ class Epub3Transfer extends BEAppModel
                 }
             }
         }
-        foreach ($parentContentPriority as $sectionId => &$contents) {
-            usort($contents, function($a, $b) {
+        foreach ($parentContentPriority as $sectionId => &$c) {
+            usort($c, function($a, $b) {
             	$p1 = (!empty($a['priority'])) ? $a['priority'] : 99999;
             	$p2 = (!empty($b['priority'])) ? $b['priority'] : 99999;
             	return $p1 - $p2;
@@ -479,7 +481,7 @@ class Epub3Transfer extends BEAppModel
             if (!empty($section['childContents'])) {
                 foreach ($section['childContents'] as &$content) {
                     if (!empty($content['uri'])) {
-                        $content['uri'] = '.' . DS . 'media' . $content['uri']; // fix relative uri for media contents
+                        //$content['uri'] = '.' . DS . 'media' . $content['uri']; // fix relative uri for media contents
                         $this->export['media'][$content['id']] = $content;
                     }
                 }

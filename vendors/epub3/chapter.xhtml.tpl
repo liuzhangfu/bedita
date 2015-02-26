@@ -80,6 +80,22 @@
 	{foreach $subsection.contents as $a}
 		<article id="{$a.nickname}">
 			<h1>{$a.title}</h1>
+			{* image *}
+			{if !empty($a.uri)}
+				{if $a.object_type_id == $conf->objectTypes.image.id}
+					<figure id="{$a.nickname}">
+						{assign var='obj_url' value=$beEmbedMedia->object($a, ['URLonly' => true, 'width' => 200, 'height' => 200])}
+						{if $obj_url == $conf->imgMissingFile}
+							{assign_concat var='obj_url' 1='./media' 2=$obj_url}
+						{/if}
+						<img src="{$obj_url}" alt="{$a.title}" />
+						<figcaption>
+							<h1>{$a.title}</h1>
+							<p>{$a.description|default:''}</p>
+						</figcaption>
+					</figure>
+				{/if}
+			{/if}
 			{$a.body|default:''}
 			{if !empty($a.RelatedObject)}
 			{foreach from=$a.RelatedObject item=item}
