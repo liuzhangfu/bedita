@@ -52,7 +52,7 @@ class Epub3Transfer extends BEAppModel
         'media' => array()
     );
 
-    protected $smarty = null;    
+    protected $smarty = null;
 
     /**
      * Import from epub3 file to BEdita
@@ -60,8 +60,37 @@ class Epub3Transfer extends BEAppModel
      * @param  string &$epub3Filename   full path to epub3 file
      * @param  array  $options          options for import
      */
-    public function import(string $epub3Filename, array $options = array()) {
-		// $this->logFile = 'epub3import';
+    public function import($epub3Filename, array $options = array()) {
+		$this->logFile = 'epub3import';
+		// setting log level - default ERROR
+		$this->import['logLevel'] = (!empty($options['logLevel'])) ? $options['logLevel'] : 0;
+		$this->trackInfo('START');
+		$this->import['folders']['tmp'] = TMP . md5(time());
+		$this->import['filename'] = $epub3Filename;
+		$this->trackInfo('temporary folder: ' . $this->import['folders']['tmp']);
+		$this->trackInfo('filename: ' . $this->import['filename']);
+		try {
+			// open epub + extract to tmp folder
+			$this->extractEpub($this->import['filename'], $this->import['folders']['tmp']);
+			$this->import['folders']['media'] = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'media';
+			// look for oebps/data.json
+			$jsonFile = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'data.json';
+			$data =  @file_get_contents($jsonFile);
+			if (!empty($data)) {
+				// getting export data
+				$dataTransfer = ClassRegistry::init('DataTransfer');
+				$opts = array(
+					'sourceMediaRoot' => $this->import['folders']['media']
+				);
+				// call data_transfer->import
+				$dataTransfer->import($data, $opts);
+			} else {
+			    // TODO: parse epub chapters and data...
+			}
+		} catch(Exception $e) {
+        	$this->trackError('ERROR: ' . $e->getMessage());
+        }
+		$this->trackInfo('END');
     }
 
     /**
@@ -255,6 +284,17 @@ class Epub3Transfer extends BEAppModel
                     $this->applyTemplate('chapter.xhtml.tpl', $chapter, $this->export['folders']['oebps'] . DS . $chapter['filename'] . '.xhtml');
                 }
             }
+            // add json structure
+            $json = "";
+            $jsonFileName = $this->export['folders']['oebps'] . DS . 'data.json';
+            if (phpversion() >= '5.4') {
+            	$json = json_encode($this->export['source']['data'], JSON_PRETTY_PRINT);
+            } else {
+            	$json = json_encode($this->export['source']['data']);
+            }
+            if (!file_put_contents($jsonFileName, $json)) {
+            	throw new BeditaException('error saving data to file "' . $jsonFileName . '"');
+            }
             // 3 zip, save as epub3, return
             $pos = strrpos($this->export['filename'], '.');
             $this->export['fileextension'] = substr($this->export['filename'], $pos+1);
@@ -267,10 +307,10 @@ class Epub3Transfer extends BEAppModel
             $folder->delete($this->export['folders']['tmp']);
             rename($zipFileName,$epubFileName);
             $this->trackInfo('Created file ' . $epubFileName);
-            echo "\n" . 'Created file ' . $epubFileName . "\n\n";
         } catch(Exception $e) {
         	$this->trackError('ERROR: ' . $e->getMessage());
         }
+        $this->trackInfo('END');
     }
 
     /**
@@ -363,6 +403,19 @@ class Epub3Transfer extends BEAppModel
     }
 
     /* private functions */
+
+    /* private file utils */
+
+    private function extractEpub($fileName, $destFolder) {
+    	$zip = new ZipArchive();
+    	$f = $zip->open($fileName);
+    	if ($f === true) {
+    		$zip->extractTo($destFolder);
+    		$zip->close();
+    	} else {
+    	    throw new BeditaException('Unable to extract file ' . $fileName . ' to destination folder ' . $destFolder);
+    	}
+    }
 
     /* private arranging data functions */
 
@@ -478,7 +531,6 @@ class Epub3Transfer extends BEAppModel
 
     private function trackError($message) {
         $this->trackResult('ERROR', $message);
-        echo $message . "\n";
     }
 
     private function trackWarn($message) {

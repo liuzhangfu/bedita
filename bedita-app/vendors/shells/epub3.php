@@ -52,7 +52,7 @@ class Epub3Shell extends BeditaBaseShell {
             echo "\n" . 'EPUB3 Import options - logLevel: ' . $this->options['import']['logLevel'] . ' (' . array_search($this->options['import']['logLevel'], $this->logLevels) . ')';
         }
         $epub3transfer = ClassRegistry::init('Epub3Transfer');
-        $result = $epub3transfer->import($inputData, $this->options['import']);
+        $result = $epub3transfer->import($this->params['f'], $this->options['import']);
         $this->out('Epub3 Shell Import end');
     }
     
