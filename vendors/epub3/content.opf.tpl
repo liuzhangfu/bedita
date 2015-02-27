@@ -30,6 +30,7 @@
 		<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
 		<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
 		<item id="cover-image" properties="cover-image" href="media/cover.png" media-type="image/png"/>
+		<item id="icon-missing-image" href="media/img/iconMissingImage_130x85.gif" media-type="image/gif" />
 		<item id="style" href="css/epub.css" media-type="text/css"/>
 		{if !empty($data.parts)}
 			{foreach $data.parts as $p}
@@ -54,10 +55,10 @@
 					{if $obj_url == $conf->imgMissingFile}
 						{assign_concat var='obj_url' 1='./media' 2=$obj_url}
 					{/if}
-				<item id="{$obj.nickname}" href="{$obj_url}" media-type="{$obj.mime_type}" />
+				<item id="{$obj.nickname}" href="{$obj_url}" media-type="{$obj.mime_type|default:'image'}" />
 			{/if}
 		{/foreach}
-
+		<item id="json-data" href="data.json" media-type="text" />
 	</manifest>
 	<spine>
 		<itemref idref="cover" linear="no"/>
