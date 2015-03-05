@@ -296,6 +296,7 @@ class DataTransfer extends BEAppModel
             $this->trackInfo('2 import OK');
         } catch(Exception $e) {
             $this->trackError('ERROR: ' . $e->getMessage());
+            echo 'ERROR: ' . $e->getMessage();
         }
         // 3. result
         $this->trackInfo('3 result');
@@ -463,7 +464,7 @@ class DataTransfer extends BEAppModel
                     throw new BeditaException('destMediaRoot folder "' . $this->export['destMediaRoot'] . '" not found');
                 }
                 foreach ($this->export['media'] as $objectId => $uri) {
-                    $this->copyFileToFolder($this->export['srcMediaRoot'], $this->export['destMediaRoot'], $uri);                    
+                    $this->copyFileToFolder($this->export['srcMediaRoot'], $this->export['destMediaRoot'], $uri);
                     $this->trackDebug('... saving ' . $this->export['destMediaRoot'] . $uri);
                 }
             }
@@ -482,6 +483,7 @@ class DataTransfer extends BEAppModel
             $this->trackInfo('export OK');
         } catch(Exception $e) {
             $this->trackError('ERROR: ' . $e->getMessage());
+            echo 'ERROR: ' . $e->getMessage();
         }
         $this->trackInfo('END');
         return $this->export['destination']['byType'][$this->export['returnType']];
@@ -1039,6 +1041,10 @@ class DataTransfer extends BEAppModel
             if (!$model->save($newSection)) {
                 throw new BeditaException('error saving section (import id ' . $section['id'] . ')');
             }
+            if (!empty($section['priority'])) {
+                $tree = ClassRegistry::init('Tree');
+                $tree->setPriority($model->id, $section['priority'], $newSection['parent_id']);
+            }
             $this->import['saveMap'][$section['id']] = $model->id;
             $this->trackDebug('-- saving section ' . $section['id'] . ' with BEdita Section id ' . $model->id . ' ... END');
         }
@@ -1221,7 +1227,7 @@ class DataTransfer extends BEAppModel
                 if (empty($this->export['destination']['byType']['ARRAY']['objects'][$relation['object_id']])) {
                     $object['relatedObjectIds'][] = $relation['object_id'];
                 }
-                if (!in_array($relation['switch'], $this->export['destination']['byType']['ARRAY']['relations'])) {
+                if (!in_array($relation['switch'], array_keys($this->export['destination']['byType']['ARRAY']['relations']))) {
                     $this->export['destination']['byType']['ARRAY']['relations'][$relation['switch']] = array();
                 }
                 $r = array(

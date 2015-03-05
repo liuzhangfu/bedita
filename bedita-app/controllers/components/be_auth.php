@@ -174,7 +174,9 @@ class BeAuthComponent extends Object {
             $this->log('Session component not set!');
         } elseif (!$this->Session->valid()) {
             $res = false;
-            $this->log('checkSessionKey: session not valid! ' . $this->Session->id . AppController::usedUrl());
+            if ($this->Session->started()) {
+                $this->log('checkSessionKey: session not valid! ' . $this->Session->id . AppController::usedUrl());
+            }
         } 
 
         if ($res) {
@@ -582,7 +584,7 @@ class BeAuthComponent extends Object {
         if ($notify) {
             $user->Behaviors->detach('Notify');
         }
-        return $user->id;
+        return $user->getLastInsertID();
     }
 
     /**
