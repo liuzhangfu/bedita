@@ -23,7 +23,7 @@ class Epub3Transfer extends BEAppModel
 {
     public $useTable = false;
 
-	protected $result = array();
+    protected $result = array();
 
     private $logFile;
     private $logLevel;
@@ -43,13 +43,18 @@ class Epub3Transfer extends BEAppModel
             'oebps' => null,
             'media' => null,
             'mediaImg' => null,
+            'mediaCache' => null,
             'missingFile' => null,
             'css' => null
         ),
         'manifest' => null,
         'treeDepth' => 0,
         'rootIds' => array(),
-        'media' => array()
+        'media' => array(),
+        'epub3filedata' => array(
+            'containerXml' => '',
+            'oebpsPath' => ''
+        )
     );
 
     protected $smarty = null;
@@ -61,36 +66,36 @@ class Epub3Transfer extends BEAppModel
      * @param  array  $options          options for import
      */
     public function import($epub3Filename, array $options = array()) {
-		$this->logFile = 'epub3import';
-		// setting log level - default ERROR
-		$this->import['logLevel'] = (!empty($options['logLevel'])) ? $options['logLevel'] : 0;
-		$this->trackInfo('START');
-		$this->import['folders']['tmp'] = TMP . md5(time());
-		$this->import['filename'] = $epub3Filename;
-		$this->trackInfo('temporary folder: ' . $this->import['folders']['tmp']);
-		$this->trackInfo('filename: ' . $this->import['filename']);
-		try {
-			// open epub + extract to tmp folder
-			$this->extractEpub($this->import['filename'], $this->import['folders']['tmp']);
-			$this->import['folders']['media'] = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'media';
-			// look for oebps/data.json
-			$jsonFile = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'data.json';
-			$data =  @file_get_contents($jsonFile);
-			if (!empty($data)) {
-				// getting export data
-				$dataTransfer = ClassRegistry::init('DataTransfer');
-				$opts = array(
-					'sourceMediaRoot' => $this->import['folders']['media']
-				);
-				// call data_transfer->import
-				$dataTransfer->import($data, $opts);
-			} else {
-			    // TODO: parse epub chapters and data...
-			}
-		} catch(Exception $e) {
-        	$this->trackError('ERROR: ' . $e->getMessage());
+        $this->logFile = 'epub3import';
+        // setting log level - default ERROR
+        $this->import['logLevel'] = (!empty($options['logLevel'])) ? $options['logLevel'] : 0;
+        $this->trackInfo('START');
+        $this->import['folders']['tmp'] = TMP . md5(time());
+        $this->import['filename'] = $epub3Filename;
+        $this->trackInfo('temporary folder: ' . $this->import['folders']['tmp']);
+        $this->trackInfo('filename: ' . $this->import['filename']);
+        try {
+            // open epub + extract to tmp folder
+            $this->extractEpub($this->import['filename'], $this->import['folders']['tmp']);
+            $this->import['folders']['media'] = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'media';
+            // look for oebps/data.json
+            $jsonFile = $this->import['folders']['tmp'] . DS . 'OEBPS' . DS . 'data.json';
+            $data =  @file_get_contents($jsonFile);
+            if (!empty($data)) {
+                // getting export data
+                $dataTransfer = ClassRegistry::init('DataTransfer');
+                $opts = array(
+                    'sourceMediaRoot' => $this->import['folders']['media']
+                );
+                // call data_transfer->import
+                $dataTransfer->import($data, $opts);
+            } else {
+                // TODO: parse epub chapters and data...
+            }
+        } catch(Exception $e) {
+            $this->trackError('ERROR: ' . $e->getMessage());
         }
-		$this->trackInfo('END');
+        $this->trackInfo('END');
     }
 
     /**
@@ -122,6 +127,7 @@ class Epub3Transfer extends BEAppModel
             if(@mkdir($this->export['folders']['oebps'], 0755, true) === false) {
                 throw new BeditaException('Unable to create ' . $this->export['folders']['oebps']);
             }
+            $this->export['folders']['fonts'] = $this->export['folders']['oebps'] . DS . 'fonts';
             // media folder
             $this->export['folders']['media'] = $this->export['folders']['oebps'] . DS . 'media';
             if(@mkdir($this->export['folders']['media'], 0755, true) === false) {
@@ -184,10 +190,7 @@ class Epub3Transfer extends BEAppModel
             // set resource path -> img, tpl, css,....
             $this->export['folders']['resource'] = CAKE_CORE_INCLUDE_PATH . DS . 'vendors' . DS . 'epub3' . DS;
             // 2. create epub3 files structure
-            // 2.1 mimetype
-            if(copy($this->export['folders']['resource'] . 'mimetype', $this->export['folders']['tmp'] . DS . 'mimetype') === false) {
-                throw new BeditaException('Unable to create ' . $this->export['folders']['tmp'] . DS . 'mimetype');
-            }
+            // 2.1 mimetype / create it inside Epub3File class
             // 2.2 META-INF folder
             $this->export['folders']['metainf'] = $this->export['folders']['tmp'] . DS . 'META-INF';
             if(@mkdir($this->export['folders']['metainf'], 0755, true) === false) {
@@ -202,6 +205,10 @@ class Epub3Transfer extends BEAppModel
             $this->export['folders']['mediaImg'] = $this->export['folders']['media'] . DS . 'img';
             if(@mkdir($this->export['folders']['mediaImg'], 0755, true) === false) {
                 throw new BeditaException('Unable to create ' . $this->export['folders']['mediaImg']);
+            }
+            $this->export['folders']['mediaCache'] = $this->export['folders']['media'] . DS . 'cache';
+            if(@mkdir($this->export['folders']['mediaCache'], 0755, true) === false) {
+                throw new BeditaException('Unable to create ' . $this->export['folders']['mediaCache']);
             }
             $this->export['folders']['missingFile'] = BEDITA_CORE_PATH . DS . 'webroot' . Configure::read('imgMissingFile');
             $missingFile = basename($this->export['folders']['missingFile']);
@@ -280,35 +287,36 @@ class Epub3Transfer extends BEAppModel
                     }
                 }
             } else {
-                foreach($data['chapters'] as $chapter) {
-                    $this->applyTemplate('chapter.xhtml.tpl', $chapter, $this->export['folders']['oebps'] . DS . $chapter['filename'] . '.xhtml');
+                if (!empty($data['chapters'])) {
+                    foreach($data['chapters'] as $chapter) {
+                        $this->applyTemplate('chapter.xhtml.tpl', $chapter, $this->export['folders']['oebps'] . DS . $chapter['filename'] . '.xhtml');
+                    }
                 }
             }
             // add json structure
             $json = "";
             $jsonFileName = $this->export['folders']['oebps'] . DS . 'data.json';
             if (phpversion() >= '5.4') {
-            	$json = json_encode($this->export['source']['data'], JSON_PRETTY_PRINT);
+                $json = json_encode($this->export['source']['data'], JSON_PRETTY_PRINT);
             } else {
-            	$json = json_encode($this->export['source']['data']);
+                $json = json_encode($this->export['source']['data']);
             }
             if (!file_put_contents($jsonFileName, $json)) {
-            	throw new BeditaException('error saving data to file "' . $jsonFileName . '"');
+                throw new BeditaException('error saving data to file "' . $jsonFileName . '"');
             }
             // 3 zip, save as epub3, return
             $pos = strrpos($this->export['filename'], '.');
             $this->export['fileextension'] = substr($this->export['filename'], $pos+1);
             $this->export['filename'] = substr($this->export['filename'], 0, $pos);
             $epubFileName = $this->export['filename'] . '.epub';
-            $zipFileName = $this->export['filename'] . '.zip';
-            $phar = new PharData($zipFileName);
-            $phar->buildFromDirectory($this->export['folders']['tmp']);
-            $folder = new Folder($this->export['folders']['tmp']);
-            $folder->delete($this->export['folders']['tmp']);
-            rename($zipFileName,$epubFileName);
+            $this->export['epub3filedata']['containerXml'] = $this->export['folders']['metainf'] . DS . 'container.xml';
+            $this->export['epub3filedata']['oebpsPath'] =  $this->export['folders']['oebps'];
+            $epub3file = ClassRegistry::init('Epub3File');
+            $epub3file->init($epubFileName, $this->export['epub3filedata']);
+            $epub3file->create();
             $this->trackInfo('Created file ' . $epubFileName);
         } catch(Exception $e) {
-        	$this->trackError('ERROR: ' . $e->getMessage());
+            $this->trackError('ERROR: ' . $e->getMessage());
         }
         $this->trackInfo('END');
     }
@@ -341,9 +349,9 @@ class Epub3Transfer extends BEAppModel
             }
         }
         foreach ($this->export['source']['data']['objects'] as $obj) {
-        	if (empty($obj['object_type_id'])) {
-        	    $obj['object_type_id'] = Configure::read('objectTypes.' . $obj['objectType'] . '.id');
-        	}
+            if (empty($obj['object_type_id'])) {
+                $obj['object_type_id'] = Configure::read('objectTypes.' . $obj['objectType'] . '.id');
+            }
             if ($obj['objectType'] === Configure::read('objectTypes.section.name')) {
                 $obj['parents'][] = $this->export['source']['treeElements'][$obj['id']]['parent'];
             }
@@ -354,13 +362,13 @@ class Epub3Transfer extends BEAppModel
                     $type = 'sectionsChildContents';
                 }
                 foreach ($obj['parents'] as $parent) {
-                	$parentId = (is_array($parent)) ? $parent['id'] : $parent;
-                	if (empty($this->export['source'][$type])) {
-                		$this->export['source'][$type] = array();
-                	}
-                	if (empty($this->export['source'][$type][$parentId])) {
-                		$this->export['source'][$type][$parentId] = array();
-                	}
+                    $parentId = (is_array($parent)) ? $parent['id'] : $parent;
+                    if (empty($this->export['source'][$type])) {
+                        $this->export['source'][$type] = array();
+                    }
+                    if (empty($this->export['source'][$type][$parentId])) {
+                        $this->export['source'][$type][$parentId] = array();
+                    }
                     $this->export['source'][$type][$parentId][$obj['id']] = $obj;
                 }
             }
@@ -375,10 +383,10 @@ class Epub3Transfer extends BEAppModel
                             if (!empty($childParent['priority'])) {
                                 $parentContentPriority[$parentId][] = array(
                                     'id' => $child['id'],
-                                	'priority' => $childParent['priority']
+                                    'priority' => $childParent['priority']
                                 );
                             } else {
-                            	$parentContentPriority[$parentId][] = array(
+                                $parentContentPriority[$parentId][] = array(
                                     'id' => $child['id']
                                 );
                             }
@@ -390,17 +398,17 @@ class Epub3Transfer extends BEAppModel
         }
         foreach ($parentContentPriority as $sectionId => &$c) {
             usort($c, function($a, $b) {
-            	$p1 = (!empty($a['priority'])) ? $a['priority'] : 99999;
-            	$p2 = (!empty($b['priority'])) ? $b['priority'] : 99999;
-            	return $p1 - $p2;
+                $p1 = (!empty($a['priority'])) ? $a['priority'] : 99999;
+                $p2 = (!empty($b['priority'])) ? $b['priority'] : 99999;
+                return $p1 - $p2;
             });
         }
         foreach ($parentContentPriority as $sectionId => $contents) {
-        	$orderedContents = array();
-        	foreach ($contents as $child) {
-        		$orderedContents[] = $childContents[$child['id']];
-        	}
-        	$this->export['source']['sectionsChildContents'][$sectionId] = $orderedContents;
+            $orderedContents = array();
+            foreach ($contents as $child) {
+                $orderedContents[] = $childContents[$child['id']];
+            }
+            $this->export['source']['sectionsChildContents'][$sectionId] = $orderedContents;
         }
     }
 
@@ -409,14 +417,14 @@ class Epub3Transfer extends BEAppModel
     /* private file utils */
 
     private function extractEpub($fileName, $destFolder) {
-    	$zip = new ZipArchive();
-    	$f = $zip->open($fileName);
-    	if ($f === true) {
-    		$zip->extractTo($destFolder);
-    		$zip->close();
-    	} else {
-    	    throw new BeditaException('Unable to extract file ' . $fileName . ' to destination folder ' . $destFolder);
-    	}
+        $zip = new ZipArchive();
+        $f = $zip->open($fileName);
+        if ($f === true) {
+            $zip->extractTo($destFolder);
+            $zip->close();
+        } else {
+            throw new BeditaException('Unable to extract file ' . $fileName . ' to destination folder ' . $destFolder);
+        }
     }
 
     /* private arranging data functions */
@@ -432,14 +440,14 @@ class Epub3Transfer extends BEAppModel
         $sectionsTmp = array();
         foreach ($sections as $section) {
             if (in_array($section['parent'], $keys)) {
-            	$sectionItem = array(
+                $sectionItem = array(
                     'id' => $section['id'],
                     'parent' => $section['parent'],
                     'depth' => $subLevel
                 );
-            	if (!empty($section['priority'])) {
-            		$sectionItem['priority'] = $section['priority'];
-            	}
+                if (!empty($section['priority'])) {
+                    $sectionItem['priority'] = $section['priority'];
+                }
                 $this->export['source']['treeElements'][$section['id']] = $sectionItem;
                 $this->export['source']['treeByLevel']['subLevel-' . $subLevel][] = $this->export['source']['treeElements'][$section['id']];
             } else {

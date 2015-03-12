@@ -55,7 +55,7 @@ class Epub3Shell extends BeditaBaseShell {
         $result = $epub3transfer->import($this->params['f'], $this->options['import']);
         $this->out('Epub3 Shell Import end');
     }
-    
+
     public function export() {
         $this->out('Epub3Transfer Shell Export start');
         $objects = array();
@@ -83,7 +83,21 @@ class Epub3Shell extends BeditaBaseShell {
         $epub3transfer = ClassRegistry::init('Epub3Transfer');
         $result = $epub3transfer->export($objects, $this->options['export']);
         $this->out('Epub3Transfer Shell Export end');
+    }
 
+    public function minimalEpub3() {
+        if (!isset($this->params['f'])) {
+            echo "\n" . 'epub3 file required';
+            return;
+        }
+        $epub3file = ClassRegistry::init('Epub3File');
+        try {
+            $epub3file->init($this->params['f']);
+            $epub3file->create();
+        } catch (Exception $e) {
+            echo "\n" . 'Exception ' . $e->getMessage();
+        }
+        echo "\n" . 'End minimalEpub3';
     }
 
     public function help() {
