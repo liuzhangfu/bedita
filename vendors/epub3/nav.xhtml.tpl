@@ -5,36 +5,38 @@
 		<meta charset="utf-8"/>
 		<link rel="stylesheet" type="text/css" href="css/epub.css"/>
 	</head>
-	
 	<body>
 		<nav epub:type="toc" id="toc">
 			<h1>Table of contents</h1>
 			<ol>
-				{if !empty($data.parts)}
+			{if !empty($data.parts)}
 				{foreach $data.parts as $p}
 					<li><span>{$p.title}</span>
-					{if !empty($p.chapters)}
 					<ol>
-						{foreach $p.chapters as $ch}
-						<li><a href="{$ch.filename}.xhtml">{$ch.title}</a>
-						{if !empty($ch.subchapters)}
-						<ol>
-						{foreach $ch.subchapters as $subch}
-							<li><span>{$subch.title}</span></li>
-						{/foreach}
-						</ol>
+						{if !empty($p.chapters)}
+							{foreach $p.chapters as $ch}
+							<li>
+								<a href="{$ch.filename}.xhtml">{$ch.title}</a>
+								<ol>
+									{if !empty($ch.subchapters)}
+									{foreach $ch.subchapters as $subch}
+									<li><a href="{$ch.filename}.xhtml#subchapter-{$subch.nickname|default:$subch.id}">{$subch.title}</a></li>
+									{/foreach}
+									{/if}
+								</ol>
+							</li>
+							{/foreach}
 						{/if}
-						{/foreach}
-						</li>
 					</ol>
-					{/if}
 					</li>
 				{/foreach}
-				{else}
-				{foreach $data.chapters as $ch}
-				<li><a href="{$ch.filename}.xhtml">{$ch.title}</a></li>
-				{/foreach}
+			{else}
+				{if !empty($data.chapters)}
+					{foreach $data.chapters as $ch}
+					<li><a href="{$ch.filename}.xhtml">{$ch.title}</a></li>
+					{/foreach}
 				{/if}
+			{/if}
 			</ol>
 		</nav>
 	</body>

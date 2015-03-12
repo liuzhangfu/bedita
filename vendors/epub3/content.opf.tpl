@@ -18,7 +18,7 @@
 			<dc:publisher>{$data.publisher}</dc:publisher>
 		{/if}
 		{if !empty($data.created)}
-			<dc:date>{$data.created|date_format:$conf->dateTimePattern}</dc:date>
+			<dc:date>{$data.created|date_format:'%Y-%m-%dT%H:%M:%SZ'}</dc:date>
 		{/if}
 		{if !empty($data.modified)}
 			<meta property="dcterms:modified">{$data.modified|date_format:'%Y-%m-%dT%H:%M:%SZ'}</meta>
@@ -36,7 +36,6 @@
 			{foreach $data.parts as $p}
 				{foreach $p.chapters as $ch}
 		<item id="{$ch.filename}" href="{$ch.filename}.xhtml" media-type="application/xhtml+xml"/>
-
 				{/foreach}
 			{/foreach}
 		{else}
@@ -44,21 +43,32 @@
 		<item id="{$ch.filename}" href="{$ch.filename}.xhtml" media-type="application/xhtml+xml"/>
 			{/foreach}
 		{/if}
+		{$mpaths = []}
 		{foreach $data.manifest.file as $f}
-		<item id="{$f.nickname}" href="{$f.path}" media-type="{$f.mime_type}"/>
+		{if !in_array($f.path,$mpaths)}
+			{$mpaths[] = $f.path}
+			<item id="{$f.nickname}" href="{$f.path}" media-type="{$f.mime_type|default:'application/octet-stream'}"/>
+		{/if}
 		{/foreach}
-		
+		{$processedUris = []}
 		{foreach $data.media as $obj}
 			{if $obj.object_type_id == $conf->objectTypes.image.id}
-				{assign var='obj_url' value=$beEmbedMedia->object($obj, 
-					['URLonly' => true, 'width' => 200, 'height' => 200])}
-					{if $obj_url == $conf->imgMissingFile}
-						{assign_concat var='obj_url' 1='./media' 2=$obj_url}
-					{/if}
-				<item id="{$obj.nickname}" href="{$obj_url}" media-type="{$obj.mime_type|default:'image'}" />
+				{assign_concat var='obj_url' 1='./media' 2=$obj.uri}
+				{if !in_array($obj_url, $processedUris)}
+					{$processedUris[] = $obj_url}
+					<item id="{$obj.nickname}-orig" href="{$obj_url}" media-type="{$obj.mime_type|default:'application/octet-stream'}" />
+				{/if}
+				{assign var='obj_url' value=$beEmbedMedia->object($obj, ['URLonly' => true, 'width' => 200, 'height' => 200])}
+				{if $obj_url == $conf->imgMissingFile}
+					{assign_concat var='obj_url' 1='./media' 2=$obj_url}
+				{/if}
+				{if !in_array($obj_url, $processedUris)}
+					{$processedUris[] = $obj_url}
+					<item id="{$obj.nickname}" href="{$obj_url}" media-type="{$obj.mime_type|default:'application/octet-stream'}" />
+				{/if}
 			{/if}
 		{/foreach}
-		<item id="json-data" href="data.json" media-type="text" />
+		<item id="json-data" href="data.json" media-type="application/json" />
 	</manifest>
 	<spine>
 		<itemref idref="cover" linear="no"/>

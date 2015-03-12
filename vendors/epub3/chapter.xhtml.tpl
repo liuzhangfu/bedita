@@ -15,7 +15,7 @@
 			{* image *}
 			{if !empty($a.uri)}
 				{if $a.object_type_id == $conf->objectTypes.image.id}
-					<figure id="{$a.nickname}">
+					<figure id="{$a.nickname}-{$a.id}">
 						{assign var='obj_url' value=$beEmbedMedia->object($a, ['URLonly' => true, 'width' => 200, 'height' => 200])}
 						{if $obj_url == $conf->imgMissingFile}
 							{assign_concat var='obj_url' 1='./media' 2=$obj_url}
@@ -23,7 +23,7 @@
 						<img src="{$obj_url}" alt="{$a.title}" />
 						<figcaption>
 							<h1>{$a.title}</h1>
-							<p>{$a.description|default:''}</p>
+							{$a.description|default:''}
 						</figcaption>
 					</figure>
 				{/if}
@@ -42,30 +42,30 @@
 					<img src="{$obj_url}" alt="{$item.title}" />
 					<figcaption>
 						<h1>{$item.title}</h1>
-						<p>{$item.description|default:''}</p>
+						{$item.description|default:''}
 					</figcaption>
 				</figure>
 				{elseif $item.object_type_id == $conf->objectTypes.audio.id}
 				<audio id="{$item.nickname}" controls="true" autoplay="false"> {* other controls, autoplay? *}
 					<source src="media{$item.uri}" type="{$item.mime_type}" />
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				</audio>
 				{elseif $item.object_type_id == $conf->objectTypes.video.id}
 				<video id="{$item.nickname}" width="320" height="240" controls="true" autoplay="false"> {* other width, height, controls, autoplay? *}
 					<source src="media{$item.uri}" type="{$item.mime_type}" />
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				</video>
 				{else} {* show only uri *}
 					media{$item.uri}
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				{/if}
 			{else}
 				<aside epub:type="notice">
 					<h1>{$item.title}</h1>
-					<p>{$item.body|default:''}</p>
+					{$item.body|default:''}
 				</aside>
 			{/if}
 			{/foreach}
@@ -76,14 +76,14 @@
 
 {if !empty($data.subchapters)}
 {foreach $data.subchapters as $subsection}
-	<header><h2>{$subsection.title}</h2></header>
+	<header><h2><a id="subchapter-{$subsection.nickname|default:$subsection.id}">{$subsection.title}</a></h2></header>
 	{foreach $subsection.contents as $a}
 		<article id="{$a.nickname}">
 			<h1>{$a.title}</h1>
 			{* image *}
 			{if !empty($a.uri)}
 				{if $a.object_type_id == $conf->objectTypes.image.id}
-					<figure id="{$a.nickname}">
+					<figure id="{$a.nickname}-{$a.id}">
 						{assign var='obj_url' value=$beEmbedMedia->object($a, ['URLonly' => true, 'width' => 200, 'height' => 200])}
 						{if $obj_url == $conf->imgMissingFile}
 							{assign_concat var='obj_url' 1='./media' 2=$obj_url}
@@ -91,7 +91,7 @@
 						<img src="{$obj_url}" alt="{$a.title}" />
 						<figcaption>
 							<h1>{$a.title}</h1>
-							<p>{$a.description|default:''}</p>
+							{$a.description|default:''}
 						</figcaption>
 					</figure>
 				{/if}
@@ -102,7 +102,7 @@
 			{$item.switch}:
 			{if !empty($item.uri)}
 				{if $item.object_type_id == $conf->objectTypes.image.id}
-				<figure id="{$item.nickname}">
+				<figure id="{$a.nickname}-{$item.nickname}">
 					{assign var='obj_url' value=$beEmbedMedia->object($item, ['URLonly' => true, 'width' => 200, 'height' => 200])}
 					{if $obj_url == $conf->imgMissingFile}
 						{assign_concat var='obj_url' 1='./media' 2=$obj_url}
@@ -110,25 +110,25 @@
 					<img src="{$obj_url}" alt="{$item.title}" />
 					<figcaption>
 						<h1>{$item.title}</h1>
-						<p>{$item.description|default:''}</p>
+						{$item.description|default:''}
 					</figcaption>
 				</figure>
 				{elseif $item.object_type_id == $conf->objectTypes.audio.id}
-				<audio id="{$item.nickname}" controls="true" autoplay="false"> {* other controls, autoplay? *}
+				<audio id="{$a.nickname}-{$item.nickname}" controls="true" autoplay="false"> {* other controls, autoplay? *}
 					<source src="media{$item.uri}" type="{$item.mime_type}" />
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				</audio>
 				{elseif $item.object_type_id == $conf->objectTypes.video.id}
-				<video id="{$item.nickname}" width="320" height="240" controls="true" autoplay="false"> {* other width, height, controls, autoplay? *}
+				<video id="{$a.nickname}-{$item.nickname}" width="320" height="240" controls="true" autoplay="false"> {* other width, height, controls, autoplay? *}
 					<source src="media{$item.uri}" type="{$item.mime_type}" />
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				</video>
 				{else} {* show only uri *}
 					media{$item.uri}
 					<h1>{$item.title}</h1>
-					<p>{$item.description|default:''}</p>
+					{$item.description|default:''}
 				{/if}
 			{else}
 				<aside epub:type="notice">
