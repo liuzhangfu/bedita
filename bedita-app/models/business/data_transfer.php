@@ -239,9 +239,13 @@ class DataTransfer extends BEAppModel
                 $streamModel = ClassRegistry::init('Stream');
                 foreach ($this->import['media'] as $id => &$media) {
                     try {
-                        $beUri = $streamModel->copyFileToMediaFolder($media['full'], $this->import['destination']['media']['root']);
-                        $beFull = $this->import['destination']['media']['root'] . $beUri;
-                        $this->import['source']['data']['objects'][$id]['uri'] = $beUri;
+                        if (!empty($media['full'])) {
+                            $beUri = $streamModel->copyFileToMediaFolder($media['full'], $this->import['destination']['media']['root']);
+                            $beFull = $this->import['destination']['media']['root'] . $beUri;
+                            $this->import['source']['data']['objects'][$id]['uri'] = $beUri;
+                        } else {
+                            $this->trackWarn('missing media file for object ' . $id . ' - uri: ' . $media['uri']);
+                        }
                     } catch(Exception $e) {
                         $this->trackError($e->getMessage());
                         //$this->trackWarn($e->getMessage());
@@ -294,7 +298,6 @@ class DataTransfer extends BEAppModel
             $this->trackInfo('2 import OK');
         } catch(Exception $e) {
             $this->trackError('ERROR: ' . $e->getMessage());
-            echo 'ERROR: ' . $e->getMessage();
         }
         // 3. result
         $this->trackInfo('3 result');
@@ -524,7 +527,6 @@ class DataTransfer extends BEAppModel
             $this->trackInfo('export OK');
         } catch(Exception $e) {
             $this->trackError('ERROR: ' . $e->getMessage());
-            echo 'ERROR: ' . $e->getMessage();
         }
         $this->trackInfo('END');
         return $this->export['destination']['byType'][$this->export['returnType']];
@@ -978,7 +980,7 @@ class DataTransfer extends BEAppModel
                     $filePath = $this->import['sourceMediaRoot'] . $media['uri'];
                     // 6.3.1 existence (base folder + objects[i].uri) [TODO]
                     if (!file_exists($filePath)) {
-                        throw new BeditaException('file "' . $filePath . '" not found (object id "' . $id . '")');
+                        $this->trackWarn('file "' . $filePath . '" not found (object id "' . $id . '")');
                     } else {
                         $media['base'] = $this->import['sourceMediaRoot'];
                         $media['full'] = $filePath;
@@ -986,7 +988,7 @@ class DataTransfer extends BEAppModel
                     // 6.3.2 extension allowed [TODO]
                     // ...
                     // 6.3.3 dimension allowed [TODO]
-                // ...
+                	// ...
                 }
             }
             // 6.3.4 all files dimension < space available
