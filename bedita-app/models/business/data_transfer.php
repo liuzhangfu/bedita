@@ -306,6 +306,7 @@ class DataTransfer extends BEAppModel
         // 3.2 return result
         $this->trackDebug('3.2 return result');
         $this->trackInfo('END');
+        $this->importInfo();
         return $this->result;
     }
 
@@ -332,9 +333,11 @@ class DataTransfer extends BEAppModel
         $this->export['destMediaRoot'] = (!empty($options['destMediaRoot'])) ? $options['destMediaRoot'] : TMP . 'media-export';
         $this->export['all'] = (!empty($options['all'])) ? $options['all'] : true;
         $this->export['types'] = (!empty($options['types'])) ? $options['types'] : NULL;
+        $this->export['relations'] = (!empty($options['relations'])) ? $options['relations'] : NULL;
         $this->trackInfo('START');
         try {
             $this->export['objectTypeIds'] = array();
+            $this->export['objectTypes'] = array();
             if ($this->export['types'] != NULL) { // specific types
                 $types = explode(',', $this->export['types']);
                 foreach ($types as $type) {
@@ -343,7 +346,11 @@ class DataTransfer extends BEAppModel
                         throw new BeditaException('Object type "' . $type . '" not found');
                     }
                     $this->export['objectTypeIds'][] = $ot;
+                    $this->export['objectTypes'][] = $type;
                 }
+            }
+            if ($this->export['relations'] != NULL) { // specific relations
+                $this->export['relations'] = explode(',', $this->export['relations']);
             }
             if (empty($objects) && ($this->export['all'] === true) ) {
                 $objModel = ClassRegistry::init('BEObject');
@@ -362,7 +369,7 @@ class DataTransfer extends BEAppModel
                 foreach ($objects as $objectId) {
                      $o = ClassRegistry::init('BEObject')->findById($objectId);
                      if (empty($o)) {
-                     	throw new BeditaException('Object with id "' . $objectId . '" not found');
+                         throw new BeditaException('Object with id "' . $objectId . '" not found');
                      }
                 }
             }
@@ -476,21 +483,24 @@ class DataTransfer extends BEAppModel
             $this->trackDebug('4.1 config.customProperties:');
             if (!empty($this->export['customProperties'])) {
                 foreach ($this->export['customProperties'] as $property) {
-                    $propertyNew = array();
-                    $propertyNew['id'] = $property['id'];
-                    $propertyNew['name'] = $property['name'];
-                    $propertyNew['objectType'] = Configure::read('objectTypes.' . $property['object_type_id'] . '.name');
-                    $propertyNew['dataType'] = $property['property_type'];
-                    if (!empty($property['multiple_choice'])) {
-                        $propertyNew['multipleChoice'] = $property['multiple_choice'];
-                    }
-                    if (!empty($property['PropertyOption'])) {
-                        $propertyNew['options'] = array();
-                        foreach ($property['PropertyOption'] as $propertyOption) {
-                            $propertyNew['options'][] = $propertyOption['property_option'];
+                    $objectType = Configure::read('objectTypes.' . $property['object_type_id'] . '.name');
+                    if ( ($this->export['types'] == NULL) || in_array(strtolower($objectType), $this->export['objectTypes']) ) {
+                        $propertyNew = array();
+                        $propertyNew['id'] = $property['id'];
+                        $propertyNew['name'] = $property['name'];
+                        $propertyNew['objectType'] = $objectType;
+                        $propertyNew['dataType'] = $property['property_type'];
+                        if (!empty($property['multiple_choice'])) {
+                            $propertyNew['multipleChoice'] = $property['multiple_choice'];
                         }
+                        if (!empty($property['PropertyOption'])) {
+                            $propertyNew['options'] = array();
+                            foreach ($property['PropertyOption'] as $propertyOption) {
+                                $propertyNew['options'][] = $propertyOption['property_option'];
+                            }
+                        }
+                        $propertiesNew[] = $propertyNew;
                     }
-                    $propertiesNew[] = $propertyNew;
                 }
                 $this->export['destination']['byType']['ARRAY']['config']['customProperties'] = $propertiesNew;
             }
@@ -529,6 +539,7 @@ class DataTransfer extends BEAppModel
             $this->trackError('ERROR: ' . $e->getMessage());
         }
         $this->trackInfo('END');
+        $this->exportInfo();
         return $this->export['destination']['byType'][$this->export['returnType']];
     }
 
@@ -988,7 +999,7 @@ class DataTransfer extends BEAppModel
                     // 6.3.2 extension allowed [TODO]
                     // ...
                     // 6.3.3 dimension allowed [TODO]
-                	// ...
+                    // ...
                 }
             }
             // 6.3.4 all files dimension < space available
@@ -1204,7 +1215,7 @@ class DataTransfer extends BEAppModel
             'params' => array()
         );
         if (!empty($this->import['allRelations'][$relation['switch']]['inverse'])) {
-        	$relation['inverse'] = $this->import['allRelations'][$relation['switch']]['inverse'];
+            $relation['inverse'] = $this->import['allRelations'][$relation['switch']]['inverse'];
         }
         if (!empty($relation['priority'])) {
             $relationData['priority'] = $relation['priority'];
@@ -1297,21 +1308,23 @@ class DataTransfer extends BEAppModel
     private function rearrangeObjectFields(array &$object, $level) {
         if (isset($object['RelatedObject']) && $level < $this->maxRelationLevels) {
             foreach ($object['RelatedObject'] as $relation) {
-                if (empty($this->export['destination']['byType']['ARRAY']['objects'][$relation['object_id']])) {
-                    $object['relatedObjectIds'][] = $relation['object_id'];
+                if ($this->export['relations'] == NULL || in_array($relation['switch'], $this->export['relations'])) {
+                    if (empty($this->export['destination']['byType']['ARRAY']['objects'][$relation['object_id']])) {
+                        $object['relatedObjectIds'][] = $relation['object_id'];
+                    }
+                    if (!in_array($relation['switch'], array_keys($this->export['destination']['byType']['ARRAY']['relations']))) {
+                        $this->export['destination']['byType']['ARRAY']['relations'][$relation['switch']] = array();
+                    }
+                    $r = array(
+                        'idLeft' => $relation['id'],
+                        'idRight' => $relation['object_id'],
+                        'priority' => $relation['priority']
+                    );
+                    if (!empty($relation['params'])) {
+                        $r['params'] = $relation['params'];
+                    }
+                    $this->export['destination']['byType']['ARRAY']['relations'][$relation['switch']][] = $r;
                 }
-                if (!in_array($relation['switch'], array_keys($this->export['destination']['byType']['ARRAY']['relations']))) {
-                    $this->export['destination']['byType']['ARRAY']['relations'][$relation['switch']] = array();
-                }
-                $r = array(
-                    'idLeft' => $relation['id'],
-                    'idRight' => $relation['object_id'],
-                    'priority' => $relation['priority']
-                );
-                if (!empty($relation['params'])) {
-                    $r['params'] = $relation['params'];
-                }
-                $this->export['destination']['byType']['ARRAY']['relations'][$relation['switch']][] = $r;
             }
         }
         unset($object['RelatedObject']);
@@ -1418,7 +1431,6 @@ class DataTransfer extends BEAppModel
                         $this->trackResult('WARN', 'object id: ' . $relatedObjectId . ' already exported');
                         continue;
                     }
-                    
                     $objModel = ClassRegistry::init('BEObject');
                     $objectTypeId = $objModel->findObjectTypeId($relatedObjectId);
                     if (isset($conf->objectTypes[$objectTypeId])) {
@@ -1636,6 +1648,50 @@ class DataTransfer extends BEAppModel
                  break;
         }
         return $msg;
+    }
+
+    private function exportInfo() {
+        if (!empty($this->export['filename'])) {
+            $this->trackInfo('file created: ' . $this->export['filename']);
+        }
+        $objects = $this->export['destination']['byType']['ARRAY']['objects'];
+        $this->trackInfo('objects exported: ' . sizeof($objects));
+        $objTypeCounter = array();
+        foreach ($objects as $o) {
+            if (empty($objTypeCounter[$o['objectType']])) {
+                $objTypeCounter[$o['objectType']] = 0;
+            }
+            $objTypeCounter[$o['objectType']]++;
+        }
+        foreach ($objTypeCounter as $objType => $count) {
+            $this->trackInfo($objType . ': ' . $count);
+        }
+        $relations = $this->export['destination']['byType']['ARRAY']['relations'];
+        if (!empty($relations)) {
+            $this->trackInfo('relations exported ...');
+            foreach ($relations as $switch => $r) {
+                $this->trackInfo($switch . ': ' . sizeof($r));
+            }
+        } else {
+            $this->trackInfo('relations exported: none');
+        }
+    }
+
+    private function importInfo() {
+        $this->trackInfo('objects imported: ' . sizeOf($this->import['saveMap']));
+        $objTypeCounter = array();
+        $objects = $this->import['source']['data']['objects'];
+        foreach($objects as $object) {
+            if (in_array($object['id'], array_keys($this->import['saveMap']))) {
+                if (empty($objTypeCounter[$object['objectType']])) {
+                    $objTypeCounter[$object['objectType']] = 0;
+                }
+                $objTypeCounter[$object['objectType']]++;
+            }
+        }
+        foreach ($objTypeCounter as $objType => $count) {
+            $this->trackInfo($objType . ': ' . $count);
+        }
     }
 }
 ?>
