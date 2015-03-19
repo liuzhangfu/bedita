@@ -34,14 +34,18 @@
 		<item id="style" href="css/epub.css" media-type="text/css"/>
 		{if !empty($data.parts)}
 			{foreach $data.parts as $p}
+				{if !empty($p.chapters)}
 				{foreach $p.chapters as $ch}
 		<item id="{$ch.filename}" href="{$ch.filename}.xhtml" media-type="application/xhtml+xml"/>
 				{/foreach}
+				{/if}
 			{/foreach}
 		{else}
+			{if !empty($data.chapters)}
 			{foreach $data.chapters as $ch}
 		<item id="{$ch.filename}" href="{$ch.filename}.xhtml" media-type="application/xhtml+xml"/>
 			{/foreach}
+			{/if}
 		{/if}
 		{$mpaths = []}
 		{foreach $data.manifest.file as $f}
@@ -74,14 +78,18 @@
 		<itemref idref="cover" linear="no"/>
 		{if !empty($data.parts)}
 		{foreach $data.parts as $p}
+		{if !empty($p.chapters)}
 		{foreach $p.chapters as $ch}
 		<itemref idref="{$ch.filename}" linear="yes"/>
 		{/foreach}
+		{/if}
 		{/foreach}
 		{else}
+		{if !empty($data.chapters)}
 		{foreach $data.chapters as $ch}
 		<itemref idref="{$ch.filename}" linear="yes"/>
 		{/foreach}
+		{/if}
 		{/if}
 		<itemref idref="nav" linear="no"/>
 	</spine>

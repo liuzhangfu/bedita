@@ -179,7 +179,9 @@ class Epub3Transfer extends BEAppModel
                         foreach($epubs[$rootId]['parts'] as $k => &$part) {
                             $n = '00' . ($k+1);
                             $part['name'] = 'part' . substr($n, strlen($n)-3);
-                            $part['chapters'] = $this->chapters($part['childSections'], null, $part['name'] . '_');
+                            if (!empty($part['childSections'])) {
+                                $part['chapters'] = $this->chapters($part['childSections'], null, $part['name'] . '_');
+                            }
                         }
                     } else {
                         $epubs[$rootId]['chapters'] = $this->chapters($data['childSections']);
@@ -282,8 +284,10 @@ class Epub3Transfer extends BEAppModel
             //2.9 OEBPS/chapter_001.xhtml, ...
             if(!empty($data['parts'])) {
                 foreach($data['parts'] as $p) {
-                    foreach($p['chapters'] as $chapter) {
-                        $this->applyTemplate('chapter.xhtml.tpl', $chapter, $this->export['folders']['oebps'] . DS . $chapter['filename'] . '.xhtml');
+                    if(!empty($p['chapters'])) {
+                        foreach($p['chapters'] as $chapter) {
+                            $this->applyTemplate('chapter.xhtml.tpl', $chapter, $this->export['folders']['oebps'] . DS . $chapter['filename'] . '.xhtml');
+                        }
                     }
                 }
             } else {
@@ -375,24 +379,26 @@ class Epub3Transfer extends BEAppModel
         }
         $parentContentPriority = array();
         $childContents = array();
-        foreach ($this->export['source']['sectionsChildContents'] as $parentId => $children) {
-            foreach ($children as $child) {
-                if (!empty($child['parents'])) {
-                    foreach ($child['parents'] as $childParent) {
-                        if ($childParent['id'] == $parentId) {
-                            if (!empty($childParent['priority'])) {
-                                $parentContentPriority[$parentId][] = array(
-                                    'id' => $child['id'],
-                                    'priority' => $childParent['priority']
-                                );
-                            } else {
-                                $parentContentPriority[$parentId][] = array(
-                                    'id' => $child['id']
-                                );
+        if (!empty($this->export['source']['sectionsChildContents'])) {
+            foreach ($this->export['source']['sectionsChildContents'] as $parentId => $children) {
+                foreach ($children as $child) {
+                    if (!empty($child['parents'])) {
+                        foreach ($child['parents'] as $childParent) {
+                            if ($childParent['id'] == $parentId) {
+                                if (!empty($childParent['priority'])) {
+                                    $parentContentPriority[$parentId][] = array(
+                                        'id' => $child['id'],
+                                        'priority' => $childParent['priority']
+                                    );
+                                } else {
+                                    $parentContentPriority[$parentId][] = array(
+                                        'id' => $child['id']
+                                    );
+                                }
                             }
                         }
+                        $childContents[$child['id']] = $child;
                     }
-                    $childContents[$child['id']] = $child;
                 }
             }
         }
