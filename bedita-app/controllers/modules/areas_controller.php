@@ -38,6 +38,7 @@ class AreasController extends ModulesController {
 	var $uses = array('BEObject', 'Area', 'Section', 'Tree', 'User', 'Group', 'ObjectType','Category') ;
 	protected $moduleName = 'areas';
 	protected $categorizableModels = array('Section');
+	protected $targetId = '';
 
 	function index($id = null, $order = "priority", $dir = true, $page = 1, $dim = 20) {
 		
@@ -384,10 +385,14 @@ class AreasController extends ModulesController {
 		}
 
 		$this->Section->id = $this->data['sectionId'];
+		$this->targetId = $this->Section->id;
 		if(!empty($filterClass)) {
 			$filterModel = ClassRegistry::init($filterClass);
 			$options = array("sectionId" => $this->data['sectionId']);
 			$result = $filterModel->import(Configure::read("mediaRoot") . $path, $options);
+			if (!empty($result['targetId'])) {
+				$this->targetId = $result['targetId'];
+			}
 			$this->userInfoMessage(__("Objects imported", true).": ". $result["objects"]);
 			$this->eventInfo($result["objects"] . " objects imported in section " . $this->Section->id . " from " . $path);
 		} else {
@@ -479,7 +484,7 @@ class AreasController extends ModulesController {
                 'ERROR'	=> $this->referer()
             ),
             'import'	=> 	array(
-                'OK'	=> "/areas/view/{$this->Section->id}",
+                'OK'	=> "/areas/view/{$this->targetId}",
                 'ERROR'	=> $this->referer()
             ),
             'export'	=> 	array(

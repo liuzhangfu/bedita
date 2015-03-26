@@ -66,6 +66,7 @@ class Epub3Transfer extends BEAppModel
      * @param  array  $options          options for import
      */
     public function import($epub3Filename, array $options = array()) {
+        $result = array();
         $this->logFile = 'epub3import';
         // setting log level - default ERROR
         $this->import['logLevel'] = (!empty($options['logLevel'])) ? $options['logLevel'] : 0;
@@ -88,7 +89,7 @@ class Epub3Transfer extends BEAppModel
                     'sourceMediaRoot' => $this->import['folders']['media']
                 );
                 // call data_transfer->import
-                $dataTransfer->import($data, $opts);
+                $result = $dataTransfer->import($data, $opts);
             } else {
                 // TODO: parse epub chapters and data...
             }
@@ -96,6 +97,7 @@ class Epub3Transfer extends BEAppModel
             $this->trackError('ERROR: ' . $e->getMessage());
         }
         $this->trackInfo('END');
+        return $result;
     }
 
     /**

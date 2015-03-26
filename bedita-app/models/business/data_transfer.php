@@ -231,6 +231,9 @@ class DataTransfer extends BEAppModel
                     $parentId = $options['section_root_id'];
                     $this->saveSection($rootData, $parentId);
                 }
+                 if (empty($this->result['targetId'])) {
+                    $this->result['targetId'] = $this->import['saveMap'][$rootId];
+                }
             }
             // 2.2.2 save other section(s)
             $this->trackDebug('2.2.2 save other section(s)');
