@@ -99,7 +99,9 @@ class DataTransfer extends BEAppModel
             'ObjectType',
             'UserCreated',
             'UserModified',
-            'User'
+            'User',
+            'Version',
+            'Permission',
         ),
         'contain' => array(
             'BEObject' => array(
@@ -318,11 +320,12 @@ class DataTransfer extends BEAppModel
     }
 
     /**
-     * Export BEdita objects data to JSON/Array/XML or other format
+     * Export BEdita objects data to JSON, XML or other format
      * 
      * @param  array &$objects  ids of root elements (publication|section) or ids of objects (document|event|...)
      * @param  array $options   export parameters
-     * @return mixed content    json|array|XML... content exported in requested format
+     * @return mixed object     json|array|xml|other (file?)
+     * @see XmlJsonConverter::toXmlString()
      * 
      * $options = array(
      *    'logDebug' => true, // can be true|false
@@ -368,13 +371,33 @@ class DataTransfer extends BEAppModel
                     )
                 ));
                 $objects = array_keys($objIds);
-            } else { // verify objects existence
-                foreach ($objects as $objectId) {
-                     $o = ClassRegistry::init('BEObject')->findById($objectId);
-                     if (empty($o)) {
-                         throw new BeditaException('Object with id "' . $objectId . '" not found');
+            }
+            // verify objects existence and set custom properties
+            foreach ($objects as $objectId) {
+                 $o = ClassRegistry::init('BEObject')->field(
+                     'object_type_id',
+                     array(
+                         'id'  => $objectId
+                     )
+                 );
+                 if (empty($o)) {
+                     throw new BeditaException('Object with id "' . $objectId . '" not found');
+                 } else {
+                     $p = ClassRegistry::init('Property')->find(
+                         'all', array(
+                             'conditions' => array(
+                                 'object_type_id'  => $o[0]
+                             ),
+                             'contain' => array('PropertyOption')
+                         )
+                     );
+                     if (!empty($p)) {
+                         foreach ($p as $cproperty) {
+                             $this->export['customProperties'][$cproperty['id']] = $cproperty;
+                             unset($this->export['customProperties'][$cproperty['id']]['id']);
+                         }
                      }
-                }
+                 }
             }
             $this->trackDebug('1 area/section/other objects data');
             // $objects contain ids. they can be areas/sections or objects (document, etc.)
@@ -394,7 +417,7 @@ class DataTransfer extends BEAppModel
 
                 $objModel = ClassRegistry::init($model);
                 $objModel->contain(
-                    $this->export['contain']
+                    $this->modelBinding($model, $objModel)
                 );
                 $obj = $objModel->findById($objectId);
                 $this->prepareObjectForExport($obj);
@@ -425,7 +448,7 @@ class DataTransfer extends BEAppModel
                             $this->export['destination']['byType']['ARRAY']['tree']['sections'][] = $sectionItem;
                             $objModel = ClassRegistry::init('Section');
                             $objModel->contain(
-                                $this->export['contain']
+                                $this->modelBinding('Section', $objModel)
                             );
                             $obj = $objModel->findById($section['id']);
                             $this->prepareObjectForExport($obj);
@@ -485,24 +508,29 @@ class DataTransfer extends BEAppModel
             $this->trackDebug('4 config');
             $this->trackDebug('4.1 config.customProperties:');
             if (!empty($this->export['customProperties'])) {
+                $propertiesNew = array();
                 foreach ($this->export['customProperties'] as $property) {
                     $objectType = Configure::read('objectTypes.' . $property['object_type_id'] . '.name');
-                    if ( ($this->export['types'] == NULL) || in_array(strtolower($objectType), $this->export['objectTypes']) ) {
-                        $propertyNew = array();
-                        $propertyNew['id'] = $property['id'];
-                        $propertyNew['name'] = $property['name'];
-                        $propertyNew['objectType'] = $objectType;
+                    $propertyNew = array();
+                    $propertyNew['name'] = $property['name'];
+                    $propertyNew['objectType'] = $objectType;
+                    if(!empty($property['property_type'])) {
                         $propertyNew['dataType'] = $property['property_type'];
-                        if (!empty($property['multiple_choice'])) {
-                            $propertyNew['multipleChoice'] = $property['multiple_choice'];
+                    }
+                    if (!empty($property['multiple_choice'])) {
+                        $propertyNew['multipleChoice'] = $property['multiple_choice'];
+                    }
+                    if (!empty($property['PropertyOption'])) {
+                        $propertyNew['options'] = array();
+                        foreach ($property['PropertyOption'] as $propertyOption) {
+                            $propertyNew['options'][] = $propertyOption['property_option'];
                         }
-                        if (!empty($property['PropertyOption'])) {
-                            $propertyNew['options'] = array();
-                            foreach ($property['PropertyOption'] as $propertyOption) {
-                                $propertyNew['options'][] = $propertyOption['property_option'];
-                            }
-                        }
-                        $propertiesNew[] = $propertyNew;
+                    }
+                    $propertiesNew[] = $propertyNew;
+                }
+                foreach ($propertiesNew as &$cp) {
+                    if (!empty($cp['id'])) {
+                        unset($cp['id']);
                     }
                 }
                 $this->export['destination']['byType']['ARRAY']['config']['customProperties'] = $propertiesNew;
@@ -536,6 +564,13 @@ class DataTransfer extends BEAppModel
                         throw new BeditaException('error saving data to file "' . $this->export['filename'] . '"');
                     }
                 }
+            } elseif ($this->export['returnType'] === 'XML') {
+                $this->export['destination']['byType']['XML'] = BeLib::getObject('XmlJsonConverter')->toXmlString($this->export['destination']['byType']['ARRAY']);
+                if (!empty($this->export['filename'])) {
+                    if (!file_put_contents($this->export['filename'], $this->export['destination']['byType']['XML'])) {
+                        throw new BeditaException('error saving data to file "' . $this->export['filename'] . '"');
+                    }
+                }
             }
             $this->trackInfo('export OK');
         } catch(Exception $e) {
@@ -559,9 +594,10 @@ class DataTransfer extends BEAppModel
     /**
      * Validation of data and related objects and semantics
      * 
-     * 1 if data is a string: check json
+     * 1 if data is a string
      * 1.1 if data is a string: not empty
-     * 1.2 if data is a string: valid (json_decode / json_last_error)
+     * 1.2a if data is a JSON string: valid (json_decode / json_last_error)
+     * 1.2b if data is an XML string: valid
      *
      * 2 config
      * 2.1 custom properties
@@ -613,20 +649,37 @@ class DataTransfer extends BEAppModel
      *
      * @param $data string|array
      * @param $options array
+     * @see XmlJsonConverter::toArray()
      */
     public function validate(&$data, $options = array()) {
         if (!is_array($data)) {
-            // 1 json
+            // 1 string
             $this->import['source']['string'] = $data;
             // 1.1 not empty
             if (empty($this->import['source']['string'])) {
-                throw new BeditaException('empty json string');
+                throw new BeditaException('empty string');
             }
             $this->import['source']['string'] = trim($this->import['source']['string']);
-            $this->import['source']['data'] = json_decode($this->import['source']['string'], true);
-            // 1.2 valid (json_decode / json_last_error)
-            if (empty($this->import['source']['data'])) {
-                throw new BeditaException('json string not valid: json_last_error error code ' . $this->jsonLastErrorMsg());
+
+            $type = (!empty($options['type'])) ? $options['type'] : 'JSON';
+            switch (strtoupper($type)) {
+                case 'XML':
+                    // 1.2b valid XML (XmlJsonConverter::toArray() / libxml_get_errors)
+                    $this->import['source']['data'] = BeLib::getObject('XmlJsonConverter')->toArray($this->import['source']['string']);
+                    if (empty($this->import['source']['data'])) {
+                        throw new BeditaException('xml string not valid: xml error ' . $this->xmlLastErrorMsg());
+                    }
+
+                    $this->import['source']['data'] = $this->import['source']['data']['bedita'];
+                    break;
+
+                case 'JSON':
+                default:
+                    // 1.2 valid JSON (json_decode / json_last_error)
+                    $this->import['source']['data'] = json_decode($this->import['source']['string'], true);
+                    if (empty($this->import['source']['data'])) {
+                        throw new BeditaException('json string not valid: json_last_error error code ' . $this->jsonLastErrorMsg());
+                    }
             }
         } else {
             $this->import['source']['data'] = $data;
@@ -1351,8 +1404,24 @@ class DataTransfer extends BEAppModel
             unset($object['Annotation']);
         }
         if (isset($object['GeoTag'])) {
-            // TODO: arrange geotag data
-            unset($object['GeoTag']);
+            foreach ($object['GeoTag'] as &$geoTag) {
+                if (isset($geoTag['id'])) {
+                    unset($geoTag['id']);
+                }
+                if (isset($geoTag['object_id'])) {
+                    unset($geoTag['object_id']);
+                }
+            }
+        }
+        if (isset($object['DateItem'])) {
+            foreach ($object['DateItem'] as &$dateItem) {
+                if (isset($dateItem['id'])) {
+                    unset($dateItem['id']);
+                }
+                if (isset($dateItem['object_id'])) {
+                    unset($dateItem['object_id']);
+                }
+            }
         }
         if (isset($object['ObjectProperty'])) {
             foreach ($object['ObjectProperty'] as $cproperty) {
@@ -1457,10 +1526,9 @@ class DataTransfer extends BEAppModel
                         $this->trackResult('WARN', 'unable to export related type: ' . $model . ' tree info may be missing');
                         continue;
                     }
-                    $containLabel = $this->containLabel($model);
                     $relatedObjModel = ClassRegistry::init($model);
                     $relatedObjModel->contain(
-                        $this->export[$containLabel]
+                        $this->modelBinding($model, $relatedObjModel)
                     );
                     $relatedObj = $relatedObjModel->findById($relatedObjectId);
                     $this->prepareObjectForExport($relatedObj, $nextLevel);
@@ -1537,10 +1605,9 @@ class DataTransfer extends BEAppModel
                     } else {
                         $model = $conf->objectTypesExt[$objectTypeId]['model'];
                     }
-                    $containLabel = $this->containLabel($model);
                     $objModel = ClassRegistry::init($model);
                     $objModel->contain(
-                        $this->export[$containLabel]
+                        $this->modelBinding($model, $objModel)
                     );
                     $obj = $objModel->findById($objectId);
                     $this->prepareObjectForExport($obj);
@@ -1550,11 +1617,20 @@ class DataTransfer extends BEAppModel
         $tree->unbindModel(array('belongsTo' => array('BEObject')));
     }
 
-    private function containLabel($model) {
-        if (in_array($model, $this->streamModels)) {
-            return 'contain-stream';
-        } else {
-            return 'contain';
+    /**
+     * Return the proper model binding for model.
+     *
+     * @param string $model Model name.
+     * @param BEAppModel $objModel Instantiated model object.
+     * @return array Model binding.
+     */
+    private function modelBinding($model, BEAppModel $objModel) {
+        try {
+            // Use detailed model binding, if present.
+            return $objModel->containLevel('detailed');
+        } catch (Exception $e) {
+            // Use default basic model bindings.
+            return $this->export[in_array($model, $this->streamModels) ? 'contain-stream' : 'contain'];
         }
     }
 
@@ -1661,6 +1737,30 @@ class DataTransfer extends BEAppModel
                  break;
         }
         return $msg;
+    }
+
+    /**
+     * Formats last XML error in a simple, human-readable format.
+     *
+     * @return string
+     */
+    private function xmlLastErrorMsg() {
+        $msg = '';
+        $err = libxml_get_last_error();
+        switch ($err->level) {
+            case LIBXML_ERR_WARNING:
+                $msg .= " - Warning {$err->code}";
+                break;
+            case LIBXML_ERR_ERROR:
+                $msg .= " - Error {$err->code}";
+                break;
+            case LIBXML_ERR_FATAL:
+                $msg .= " - Fatal Error {$err->code}";
+                break;
+        }
+        $msg .= " (line {$err->line}; column {$err->column}): " . trim($err->message);
+        libxml_clear_errors();
+        return implode(PHP_EOL, $msg);
     }
 
     private function exportInfo() {
