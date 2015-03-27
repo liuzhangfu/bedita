@@ -32,7 +32,7 @@
 		<item id="cover-image" properties="cover-image" href="media/cover.png" media-type="image/png"/>
 		<item id="icon-missing-image" href="media/img/iconMissingImage_130x85.gif" media-type="image/gif" />
 		{foreach $data.css as $css}
-			<item id="style" href="css/{$css}" media-type="text/css"/>
+			<item id="style-{$css@index}" href="css/{$css}" media-type="text/css"/>
 		{/foreach}
 		{if !empty($data.parts)}
 			{foreach $data.parts as $p}
