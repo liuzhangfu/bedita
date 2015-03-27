@@ -146,6 +146,8 @@ class Epub3Transfer extends BEAppModel
             if (!empty($this->export['source']['data']['tree']['roots'])) {
                 $this->export['rootIds'] = $this->export['source']['data']['tree']['roots'];
             }
+            // firstBookCover
+            $this->export['firstBookCover'] = $this->firstBookCover();
             $tmpData = array();
             foreach ($this->export['rootIds'] as $rootId) {
                 $tmpData[$rootId] = $this->export['source']['data']['objects'][$rootId];
@@ -279,8 +281,15 @@ class Epub3Transfer extends BEAppModel
             //2.8 OEBPS/nav.xhtml
             $this->applyTemplate('nav.xhtml.tpl', $data, $this->export['folders']['oebps'] . DS . 'nav.xhtml');
             // cover
-            if(copy($this->export['folders']['resource'] . 'cover.png', $this->export['folders']['media'] . DS . 'cover.png') === false) {
-                throw new BeditaException('Unable to create ' . $this->export['folders']['media'] . DS . 'cover.png');
+            // try to find cover as first attach of object book inside publication; if it exists: override
+            if (!empty($this->export['firstBookCover'])) {
+                if (copy($this->export['firstBookCover'], $this->export['folders']['media'] . DS . 'cover.png') === false) {
+                    throw new BeditaException('Unable to create ' . $this->export['folders']['media'] . DS . 'cover.png');
+                }
+            } else {
+                if (copy($this->export['folders']['resource'] . 'cover.png', $this->export['folders']['media'] . DS . 'cover.png') === false) {
+                    throw new BeditaException('Unable to create ' . $this->export['folders']['media'] . DS . 'cover.png');
+                }
             }
             $this->applyTemplate('cover.xhtml.tpl', $data, $this->export['folders']['oebps'] . DS . 'cover.xhtml');
             //2.9 OEBPS/chapter_001.xhtml, ...
@@ -421,6 +430,32 @@ class Epub3Transfer extends BEAppModel
     }
 
     /* private functions */
+
+    private function firstBookCover() {
+        $books = array();
+        foreach ($this->export['source']['data']['objects'] as $object) {
+            if ($object['objectType'] == 'book') {
+                $books[] = $object;
+            }
+        }
+        $firstBook = (!empty($books)) ? $books[0] : null;
+        if ($firstBook != null) {
+            if (!empty($firstBook['parents']) && $firstBook['parents'][0]['id'] == $this->export['rootIds'][0]) {
+                $relations = $this->export['source']['data']['relations'];
+                if (!empty($relations['attach'])) {
+                    foreach ($relations['attach'] as $attach) {
+                        if (empty($this->export['firstBookCover']) && $attach['idLeft'] == $firstBook['id']) {
+                            if ($this->export['source']['data']['objects'][$attach['idRight']]['objectType'] == 'image') {
+                                $mediaRoot = Configure::read('mediaRoot');
+                                $this->export['firstBookCover'] = $mediaRoot . DS . $this->export['source']['data']['objects'][$attach['idRight']]['uri'];
+                                return $this->export['firstBookCover'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /* private file utils */
 
