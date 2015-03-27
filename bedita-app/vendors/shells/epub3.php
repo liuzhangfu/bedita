@@ -71,6 +71,10 @@ class Epub3Shell extends BeditaBaseShell {
             $this->options['export']['filename'] = $this->params['f'];
             echo "\n" . 'EPUB3 Export options - filename: ' . $this->options['export']['filename'];
         }
+        if (isset($this->params['css'])) {
+        	$this->options['export']['cssDir'] = $this->params['css'];
+        	echo "\n" . 'EPUB3 Export options - cssDir: ' . $this->options['export']['cssDir'];
+        }
         if (isset($this->params['d'])) {
             $this->options['export']['treeDepth'] = $this->params['d'];
             echo "\n" . 'EPUB3 Export options - treeDepth: ' . $this->options['export']['treeDepth'];
@@ -105,7 +109,7 @@ class Epub3Shell extends BeditaBaseShell {
         $this->out('epub3 script shell usage:');
         $this->out('');
         $this->out('./cake.sh epub3 import -f <filename> [-m <sourceMediaRoot>] [-v]');
-        $this->out('./cake.sh epub3 export -id <objectId> [-f <filename>] [-d <treeDepth>] [-v]');
+        $this->out('./cake.sh epub3 export -id <objectId> [-f <filename>] [-css <cssDir>] [-d <treeDepth>] [-v]');
         $this->hr();
     }
 }

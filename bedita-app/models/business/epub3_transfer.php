@@ -115,6 +115,7 @@ class Epub3Transfer extends BEAppModel
         $this->trackInfo('START');
         $this->export['folders']['tmp'] = TMP . md5(time());
         $this->export['filename'] = (!empty($options['filename'])) ? $options['filename'] : $this->export['folders']['tmp'] . '.zip';
+        $this->export['cssDir'] = (!empty($options['cssDir'])) ? $options['cssDir'] : null;
         $this->trackInfo('temporary folder: ' . $this->export['folders']['tmp']);
         $this->trackInfo('filename: ' . $this->export['filename']);
         try {
@@ -222,12 +223,30 @@ class Epub3Transfer extends BEAppModel
                 throw new BeditaException('Unable to create ' . $this->export['folders']['mediaImg'] . DS . $missingFile);
             }
             // 2.6 css folder
+            $this->export['epub3filedata']['css'] = array();
             $this->export['folders']['css'] = $this->export['folders']['oebps'] . DS . 'css';
             if(@mkdir($this->export['folders']['css'], 0755, true) === false) {
                 throw new BeditaException('Unable to create ' . $this->export['folders']['css']);
             }
-            if(@copy($this->export['folders']['resource'] . 'epub.css', $this->export['folders']['css'] . DS .  'epub.css') === false) {
-                throw new BeditaException('Unable to create ' . $this->export['folders']['css'] . DS . 'epub.css');
+            if ($this->export['cssDir'] != null) {
+                // copy dir content to css folder
+                $cssFiles = scandir($this->export['cssDir']);
+                foreach ($cssFiles as $cssFile) {
+                    $basename = basename($cssFile);
+                    if ($this->endsWith($basename,'.css')) {
+                        $destCssFile = $this->export['folders']['css'] . DS . $basename;
+                        if(@copy($this->export['cssDir'] . DS . $cssFile, $destCssFile) === false) {
+                            throw new BeditaException('Unable to create ' . $destCssFile);
+                        }
+                        $this->export['epub3filedata']['css'][] = $basename;
+                    }
+                }
+            } else {
+                $basename = 'epub.css';
+                if(@copy($this->export['folders']['resource'] . 'epub.css', $this->export['folders']['css'] . DS .  $basename) === false) {
+                    throw new BeditaException('Unable to create ' . $this->export['folders']['css'] . DS . $basename);
+                }
+                $this->export['epub3filedata']['css'][] = $basename;
             }
             // copy all other file/dir inside $this->export['folders']['resource'] to OEBPS dir
             include(BEDITA_CORE_PATH.DS . 'config' . DS . 'mime.types.php');
@@ -276,6 +295,8 @@ class Epub3Transfer extends BEAppModel
             $data['manifest'] = $this->export['manifest'];
             // media
             $data['media'] = $this->export['uniqueMedia'];
+            // css
+            $data['css'] = $this->export['epub3filedata']['css'];
             //2.7 OEBPS/Content.opf
             $this->applyTemplate('content.opf.tpl', $data, $this->export['folders']['oebps'] . DS . 'Content.opf');
             //2.8 OEBPS/nav.xhtml
@@ -427,6 +448,15 @@ class Epub3Transfer extends BEAppModel
             }
             $this->export['source']['sectionsChildContents'][$sectionId] = $orderedContents;
         }
+    }
+
+    /* private string utils */
+    private function startsWith($haystack, $needle) {
+        return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
+    }
+
+    private function endsWith($haystack, $needle) {
+        return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
     }
 
     /* private functions */

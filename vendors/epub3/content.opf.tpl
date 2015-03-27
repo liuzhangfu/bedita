@@ -31,7 +31,9 @@
 		<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
 		<item id="cover-image" properties="cover-image" href="media/cover.png" media-type="image/png"/>
 		<item id="icon-missing-image" href="media/img/iconMissingImage_130x85.gif" media-type="image/gif" />
-		<item id="style" href="css/epub.css" media-type="text/css"/>
+		{foreach $data.css as $css}
+			<item id="style" href="css/{$css}" media-type="text/css"/>
+		{/foreach}
 		{if !empty($data.parts)}
 			{foreach $data.parts as $p}
 				{if !empty($p.chapters)}
