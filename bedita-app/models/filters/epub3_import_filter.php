@@ -33,6 +33,8 @@ class Epub3ImportFilter extends BeditaImportFilter
 {
     protected $typeName = "EPUB3";
     protected $mimeTypes = array("application/epub+zip");
+    public $label = 'EPUB3 import filter';
+    public $options = array();
 
     /**
      * Import BE objects from EPUB3
