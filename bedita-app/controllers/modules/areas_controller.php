@@ -406,8 +406,6 @@ class AreasController extends ModulesController {
 	 	$this->Transaction->commit() ;
 	}
 
-
-
 	private function deleteArea() {
 		$this->checkWriteModulePermission();
 		$objectsListDeleted = $this->deleteObjects("Area");
