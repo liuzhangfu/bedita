@@ -62,7 +62,13 @@ class DataShell extends BeditaBaseShell {
         }
         $this->out('Using file: ' . $this->params['f']);
         $this->out('Using sourceMediaRoot: ' . $this->options['import']['sourceMediaRoot']);
-        $this->checkDir($this->options['import']['sourceMediaRoot']);
+        if ($this->isUrl($this->options['import']['sourceMediaRoot'])) {
+            $this->checkUrl($this->options['import']['sourceMediaRoot']);
+            $this->options['import']['sourceMediaUri'] = $this->options['import']['sourceMediaRoot'];
+            unset($this->options['import']['sourceMediaRoot']);
+        } else {
+            $this->checkDir($this->options['import']['sourceMediaRoot']);
+        }
 
         // setting file type.
         $this->options['import']['type'] = pathinfo($this->params['f'], PATHINFO_EXTENSION);
@@ -139,8 +145,13 @@ class DataShell extends BeditaBaseShell {
         } else {
             $this->options['export']['destMediaRoot'] = TMP . 'media-export';
         }
-        $this->checkDir($this->options['export']['destMediaRoot']);
-        $this->out('Using destMediaRoot: ' . $this->options['export']['destMediaRoot']);
+        if (isset($this->params['-no-media'])) {
+            $this->options['export']['no-media'] = true;
+            $this->out('Media files will not be exported');
+        } else {
+            $this->checkDir($this->options['export']['destMediaRoot']);
+            $this->out('Using destMediaRoot: ' . $this->options['export']['destMediaRoot']);
+        }
 
         if (isset($this->params['t'])) {
             $this->options['export']['returnType'] = $this->params['t'];
@@ -215,8 +226,8 @@ class DataShell extends BeditaBaseShell {
         $this->hr();
         $this->out('data script shell usage:');
         $this->out('');
-        $this->out('./cake.sh data import -f <filename> [-m <sourceMediaRoot>] [-v]');
-        $this->out('./cake.sh data export -f <filename> [-all] [-types <type1,type2,...> [--exclude-other-types] [--related-types <type1,type2>]] [-relations <relation1,relation2,...>] [-id <objectId>] [-m <destMediaRoot>] [-t <returnType> JSON|FILE|ARRAY|XML] [-v]');
+        $this->out('./cake.sh data import -f <filename> [-m <sourceMediaRoot|sourceMediaUri>] [-v]');
+        $this->out('./cake.sh data export -f <filename> [-all] [-types <type1,type2,...> [--exclude-other-types] [--related-types <type1,type2>]] [-relations <relation1,relation2,...>] [-id <objectId>] [-m <destMediaRoot>] [--no-media] [-t <returnType> JSON|FILE|ARRAY|XML] [-v]');
         $this->out('');
     }
 
