@@ -353,6 +353,11 @@ class Epub3Transfer extends BEAppModel
             $this->trackInfo('Created file ' . $epubFileName);
         } catch(Exception $e) {
             $this->trackError('ERROR: ' . $e->getMessage());
+            if (!empty($this->export['folders']['tmp']) && !is_dir($this->export['folders']['tmp'])) {
+                if (@rmdir($this->export['folders']['tmp']) === false) {
+                    throw new BeditaException('Unable to remove dir' . $this->export['folders']['tmp']);
+                }
+            }
         }
         $this->trackInfo('END');
     }
@@ -388,7 +393,7 @@ class Epub3Transfer extends BEAppModel
             if (empty($obj['object_type_id'])) {
                 $obj['object_type_id'] = Configure::read('objectTypes.' . $obj['objectType'] . '.id');
             }
-            if ($obj['objectType'] === Configure::read('objectTypes.section.name')) {
+            if ($obj['objectType'] === Configure::read('objectTypes.section.name') && !empty($this->export['source']['treeElements'][$obj['id']]['parent'])) {
                 $obj['parents'][] = $this->export['source']['treeElements'][$obj['id']]['parent'];
             }
             if (!empty($obj['parents'])) {
@@ -475,7 +480,7 @@ class Epub3Transfer extends BEAppModel
                 if (!empty($relations['attach'])) {
                     foreach ($relations['attach'] as $attach) {
                         if (empty($this->export['firstBookCover']) && $attach['idLeft'] == $firstBook['id']) {
-                            if ($this->export['source']['data']['objects'][$attach['idRight']]['objectType'] == 'image') {
+                            if ($this->export['source']['data']['objects'][$attach['idRight']]['objectType'] == 'image' && !empty($this->export['source']['data']['objects'][$attach['idRight']]['uri'])) {
                                 $mediaRoot = Configure::read('mediaRoot');
                                 $this->export['firstBookCover'] = $mediaRoot . DS . $this->export['source']['data']['objects'][$attach['idRight']]['uri'];
                                 return $this->export['firstBookCover'];
