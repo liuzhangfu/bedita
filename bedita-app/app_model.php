@@ -26,6 +26,30 @@ class AppModel extends Model {
 
 	public $actsAs = array('Containable');
 
+    /**
+     * Options used by default from self::apiTransformer()
+     * @var array
+     */
+    protected $apiTransformerOptions = array(
+        'castable' => array('integer', 'float', 'double', 'date', 'datetime', 'boolean')
+    );
+
+    /**
+     * Return an array of column types to transform (cast)
+     * Used to build consistent REST APIs
+     *
+     * Possible options are:
+     * - 'castable' an array of fields that the REST APIs should cast to
+     *
+     * @param array $options
+     * @return array
+     */
+    public function apiTransformer($options = array()) {
+        $options = array_merge($this->apiTransformerOptions, $options);
+        $columnTypes = $this->getColumnTypes();
+        return array_intersect($columnTypes, $options['castable']);
+    }
+
 }
 
 /**
@@ -293,16 +317,57 @@ class BEAppModel extends AppModel {
 	}
 
 	public function containLevel($level = "minimum") {
-		// try to fallback to default "minimum" modelBindings level if "frontend" level doesn't exist
-		if ($level == "frontend" && !isset($this->modelBindings[$level])) {
-			$level = "minimum";
-		}
-		if(!isset($this->modelBindings[$level])) {
+        $fallbacks = array(
+            'api' => 'frontend',
+            'frontend' => 'minimum'
+        );
+        if (!isset($this->modelBindings[$level])) {
+            // search fallback
+            $end = false;
+            while (!$end) {
+                if (!isset($fallbacks[$level])) {
+                    $end = true;
+                } else {
+                    $level = $fallbacks[$level];
+                    if (isset($this->modelBindings[$level])) {
+                        $end = true;
+                    }
+                }
+            }
+        }
+
+		if (!isset($this->modelBindings[$level])) {
 			throw new BeditaException("Contain level not found: $level");
 		}
 		$this->contain($this->modelBindings[$level]);
 		return $this->modelBindings[$level];
 	}
+
+    /**
+     * Return self::modelBindings level
+     *
+     * @param string $level define the level to return. Leave empty to return all bindings level
+     * @return array|false return false if $level is not set
+     */
+    public function getBindingsLevel($level = null) {
+        if (empty($level)) {
+            return $this->modelBindings;
+        }
+        if (!isset($this->modelBindings[$level])) {
+            return false;
+        }
+        return $this->modelBindings[$level];
+    }
+
+    /**
+     * Set self::modelBindings level
+     *
+     * @param string $level the level name
+     * @param array $bindings array of model bindings
+     */
+    public function setBindingsLevel($level, array $bindings = array()) {
+        $this->modelBindings[$level] = $bindings;
+    }
 
 	public function fieldsString($modelName, $alias = null, $excludeFields = array()) {
 		$s = $this->getStartQuote();
@@ -562,7 +627,7 @@ class BEAppModel extends AppModel {
 			} else {
 				$conditions[] = array("{$s}Tree{$e}.{$s}parent_id{$e}" => $id) ;
 			}
-			if (empty($order)) {
+			if (empty($order) && empty($filter['query'])) {
 				$order = "{$s}Tree{$e}.{$s}priority{$e}";
 				$section = ClassRegistry::init("Section");
 				$priorityOrder = $section->field("priority_order", array("id" => $id));
@@ -754,13 +819,14 @@ class _emptyAfterFindView {
 class BEAppObjectModel extends BEAppModel {
 	var $recursive 	= 2 ;
 
-	var $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave',
-			'RevisionObject',
-			'ForeignDependenceSave' => array('BEObject'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
+	public $actsAs = array(
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave',
+        'RevisionObject',
+        'ForeignDependenceSave' => array('BEObject'),
+        'DeleteObject' => 'objects',
+        'Notify'
 	);
 
 	var $hasOne= array(
@@ -1004,6 +1070,35 @@ class BEAppObjectModel extends BEAppModel {
     public function getTypeId() {
         return Configure::read("objectTypes.".Inflector::underscore($this->name).".id");
     }
+
+    /**
+     * Return an array of column types to transform (cast) for generic BEdita object type
+     * Used to build consistent REST APIs
+     *
+     * In general it returns all castable fields from:
+     * - main Model table
+     * - tables that extend the object (ForeignDependenceSave)
+     * - GetTag, Category, Tag
+     *
+     * Possible options are:
+     * - 'castable' an array of fields that the REST APIs should cast to
+     *
+     * @param array $options
+     * @return array
+     */
+    public function apiTransformer(array $options = array()) {
+        $options = array_merge($this->apiTransformerOptions, $options);
+        $transformer = parent::apiTransformer($options);
+        if (!empty($this->actsAs['ForeignDependenceSave'])) {
+            foreach ($this->actsAs['ForeignDependenceSave'] as $modelName) {
+                $object = array_intersect($this->$modelName->getColumnTypes(), $options['castable']);
+                $transformer = array_merge($transformer, $object);
+            }
+        }
+        $transformer['GeoTag'] = $this->BEObject->GeoTag->apiTransformer();
+        $transformer['Category'] = $transformer['Tag'] = $this->BEObject->Category->apiTransformer();
+        return $transformer;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1023,9 +1118,10 @@ class BeditaSimpleObjectModel extends BEAppObjectModel {
 	public $useTable = 'objects';
 
 	public $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave',
-			'Notify'
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave',
+        'Notify'
 	);
 
 	public $hasOne= array();
@@ -1034,8 +1130,9 @@ class BeditaSimpleObjectModel extends BEAppObjectModel {
 class BeditaObjectModel extends BeditaSimpleObjectModel {
 
 	public $actsAs = array(
-		'CompactResult' => array(),
-		'SearchTextSave',
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave',
         'DeleteObject' => 'objects',
         'Notify'
 	);
@@ -1048,28 +1145,49 @@ class BeditaObjectModel extends BeditaSimpleObjectModel {
 			)
 	);
 
-	protected $modelBindings = array(
-				"detailed" =>  array("BEObject" => array("ObjectType",
-															"UserCreated",
-															"UserModified",
-															"Permission",
-															"ObjectProperty",
-															"LangText",
-															"RelatedObject",
-															"Annotation",
-				                                            "Category"
-															)),
-				"default" => array("BEObject" => array("ObjectProperty",
-									"LangText", "ObjectType", "Annotation",
-									"Category", "RelatedObject" )),
-						
-				"minimum" => array("BEObject" => array("ObjectType")),
-			
-				"frontend" => array("BEObject" => array("ObjectProperty",
-					"LangText", "ObjectType", "Annotation",
-					"Category", "RelatedObject" )),
-						
-	);
+    protected $modelBindings = array(
+        'detailed' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'UserCreated',
+                'UserModified',
+                'Permission',
+                'ObjectProperty',
+                'LangText',
+                'RelatedObject',
+                'Annotation',
+                'Category'
+            )
+        ),
+        'default' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'ObjectType',
+                'Annotation',
+                'Category',
+                'RelatedObject'
+            )
+        ),
+        'minimum' => array('BEObject' => array('ObjectType')),
+        'frontend' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'ObjectType',
+                'Annotation',
+                'Category',
+                'RelatedObject'
+            )
+        ),
+        'api' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'Category'
+            )
+        )
+    );
 
 	public function save($data = null, $validate = true, $fieldList = array()) {
 		$data2 = $data;
@@ -1176,24 +1294,34 @@ class BeditaAnnotationModel extends BEAppObjectModel {
 			),
 	);
 
-	var $actsAs 	= array(
-			'CompactResult' 		=> array("ReferenceObject"),
-			'SearchTextSave',
-			'ForeignDependenceSave' => array('BEObject'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
+	public $actsAs = array(
+        'Callback',
+        'CompactResult'	=> array("ReferenceObject"),
+        'SearchTextSave',
+        'ForeignDependenceSave' => array('BEObject'),
+        'DeleteObject' => 'objects',
+        'Notify'
 	);
 
-	protected $modelBindings = array(
-		"detailed" =>  array("BEObject" => array(
-									"ObjectType",
-									"UserCreated",
-									"Version" => array("User.realname", "User.userid")
-								), "ReferenceObject"),
-		"default" =>  array("BEObject" => array("ObjectType","UserCreated"), "ReferenceObject"),
-		"minimum" => array("BEObject" => array("ObjectType")),
-		"frontend" => array("BEObject", "ReferenceObject")
-	);
+    protected $modelBindings = array(
+        'detailed' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'UserCreated',
+                'Version' => array('User.realname', 'User.userid')
+            ),
+            'ReferenceObject'
+        ),
+        'default' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'UserCreated'
+            ),
+            'ReferenceObject'),
+        'minimum' => array('BEObject' => array('ObjectType')),
+        'frontend' => array('BEObject', 'ReferenceObject'),
+        'api' => array('BEObject')
+    );
 
 }
 
@@ -1215,43 +1343,64 @@ class BeditaSimpleStreamModel extends BEAppObjectModel {
 		"note" => 2
 	);
 
-	protected $modelBindings = array(
-				"detailed" => array("BEObject" => array("ObjectType",
-														"Permission",
-														"UserCreated",
-														"UserModified",
-														"RelatedObject",
-														"Annotation",
-														"Category",
-														"LangText",
-														"ObjectProperty",
-														"Alias",
-														"Version" => array("User.realname", "User.userid")
-													),
-									"Content"),
-				"default" => array("BEObject" => array(	"ObjectProperty",
-														"LangText",
-														"ObjectType",
-														"Annotation",
-														"Category"),
-									"Content"),
-				"minimum" => array("BEObject" => array("ObjectType","Category"), "Content"),
+    protected $modelBindings = array(
+        'detailed' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'Permission',
+                'UserCreated',
+                'UserModified',
+                'RelatedObject',
+                'Annotation',
+                'Category',
+                'LangText',
+                'ObjectProperty',
+                'Alias',
+                'Version' => array('User.realname', 'User.userid')
+            ),
+            'Content'
+        ),
+        'default' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'ObjectType',
+                'Annotation',
+                'Category'
+            ),
+            'Content'
+        ),
+        'minimum' => array(
+            'BEObject' => array('ObjectType', 'Category'),
+            'Content'
+        ),
+        'frontend' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'Category',
+                'RelatedObject'
+            ),
+            'Content'
+        ),
+        'api' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'Category'
+            ),
+            'Content'
+        )
+    );
 
-				"frontend" => array("BEObject" => array("LangText",
-														"ObjectProperty",
-														"Category",
-														"RelatedObject"
-														),
-									"Content")
-	);
-
-	var $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave'		=> array(),
-			'RevisionObject',
-			'ForeignDependenceSave' => array('BEObject', 'Content'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
+	public $actsAs = array(
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave' => array(),
+        'RevisionObject',
+        'ForeignDependenceSave' => array('BEObject', 'Content'),
+        'DeleteObject' => 'objects',
+        'Notify'
 	);
 
 	var $hasOne= array(
@@ -1294,45 +1443,71 @@ class BeditaStreamModel extends BEAppObjectModel {
 		"note" => 2
 	);
 
-	protected $modelBindings = array(
-				"detailed" => array("BEObject" => array("ObjectType",
-														"Permission",
-														"UserCreated",
-														"UserModified",
-														"RelatedObject",
-														"Category",
-														"ObjectProperty",
-														"LangText",
-														"Annotation",
-														"Alias",
-														"Version" => array("User.realname", "User.userid")
-														),
-									"Content", "Stream"),
-				"default" => array("BEObject" => array(	"ObjectProperty",
-														"LangText",
-														"ObjectType",
-				                                        "RelatedObject",
-														"Category",
-														"Annotation"),
-									"Content", "Stream"),
-				"minimum" => array("BEObject" => array("ObjectType","Category"),"Content", "Stream"),
+    protected $modelBindings = array(
+        'detailed' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'Permission',
+                'UserCreated',
+                'UserModified',
+                'RelatedObject',
+                'Category',
+                'ObjectProperty',
+                'LangText',
+                'Annotation',
+                'Alias',
+                'Version' => array('User.realname', 'User.userid')
+            ),
+            'Content',
+            'Stream'
+        ),
+        'default' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'ObjectType',
+                'RelatedObject',
+                'Category',
+                'Annotation'
+            ),
+            'Content',
+            'Stream'
+        ),
+        'minimum' => array(
+            'BEObject' => array('ObjectType', 'Category'),
+            'Content',
+            'Stream'
+        ),
+        'frontend' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'Category',
+                'RelatedObject'
+            ),
+            'Content',
+            'Stream'
+        ),
+        'api' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'Category'
+            ),
+            'Content',
+            'Stream'
+        )
+    );
 
-				"frontend" => array("BEObject" => array("LangText",
-														"ObjectProperty",
-														"Category",
-														"RelatedObject"
-														),
-									"Content", "Stream")
-	);
 
-
-	var $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave'		=> array(),
-			'RevisionObject',
-			'ForeignDependenceSave' => array('BEObject', 'Content', 'Stream'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
+	public $actsAs = array(
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave' => array(),
+        'RevisionObject',
+        'ForeignDependenceSave' => array('BEObject', 'Content', 'Stream'),
+        'DeleteObject' => 'objects',
+        'Notify'
 	);
 
 	var $hasOne= array(
@@ -1380,43 +1555,64 @@ class BeditaProductModel extends BEAppObjectModel {
 		"note" => 2
 	);
 
-	protected $modelBindings = array(
-			"detailed" => array("BEObject" => array("ObjectType",
-													"Permission",
-													"UserCreated",
-													"UserModified",
-													"RelatedObject",
-													"ObjectProperty",
-													"LangText",
-													"Category",
-													"Annotation",
-													"Alias",
-													"Version" => array("User.realname", "User.userid")
-												),
-								"Product"),
-			"default" => array("BEObject" => array(	"ObjectProperty",
-													"LangText",
-													"ObjectType"),
-								"Product"),
-			"minimum" => array("BEObject" => array("ObjectType"),"Product"),
+    protected $modelBindings = array(
+        'detailed' => array(
+            'BEObject' => array(
+                'ObjectType',
+                'Permission',
+                'UserCreated',
+                'UserModified',
+                'RelatedObject',
+                'ObjectProperty',
+                'LangText',
+                'Category',
+                'Annotation',
+                'Alias',
+                'Version' => array('User.realname', 'User.userid')
+            ),
+            'Product'
+        ),
+        'default' => array(
+            'BEObject' => array(
+                'ObjectProperty',
+                'LangText',
+                'ObjectType'
+            ),
+            'Product'
+        ),
+        'minimum' => array(
+            'BEObject' => array('ObjectType'),
+            'Product'
+        ),
+        'frontend' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'RelatedObject',
+                'Category',
+                'Annotation',
+                'GeoTag'
+            ),
+            'Product'
+        ),
+        'api' => array(
+            'BEObject' => array(
+                'LangText',
+                'ObjectProperty',
+                'Category',
+                'GeoTag'
+            ),
+            'Product'
+        )
+    );
 
-			"frontend" => array("BEObject" => array("LangText",
-													"ObjectProperty",
-													"RelatedObject",
-													"Category",
-													"Annotation",
-													"GeoTag"
-												),
-								"Product"),
-	);
-
-
-	var $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave'		=> array(),
-			'ForeignDependenceSave' => array('BEObject', 'Product'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
+	public $actsAs = array(
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave' => array(),
+        'ForeignDependenceSave' => array('BEObject', 'Product'),
+        'DeleteObject' => 'objects',
+        'Notify'
 	);
 
 	var $hasOne= array(
@@ -1444,15 +1640,17 @@ class BeditaProductModel extends BEAppObjectModel {
  */
 class BeditaCollectionModel extends BEAppObjectModel {
 
-	var $actsAs 	= array(
-			'CompactResult' 		=> array(),
-			'SearchTextSave',
-			'RevisionObject',
-			'ForeignDependenceSave' => array('BEObject'),
-			'DeleteDependentObject'	=> array('section'),
-			'DeleteObject' 			=> 'objects',
-			'Notify'
-	);
+	public $actsAs = array(
+        'Callback',
+        'CompactResult' => array(),
+        'SearchTextSave',
+        'RevisionObject',
+        'ForeignDependenceSave' => array('BEObject'),
+        'DeleteDependentObject'	=> array('section'),
+        'DeleteObject' => 'objects',
+        'Notify'
+    );
+
 	var $recursive 	= 2;
 
 	var $hasOne = array(
@@ -1468,7 +1666,7 @@ class BeditaCollectionModel extends BEAppObjectModel {
 					'foreignKey'	=> 'id',
 				)
 	);
-
+	
 	public function deleteCollection($id) {
 		return ClassRegistry::init('Tree')->removeBranch($id);
 	}
@@ -1568,5 +1766,3 @@ abstract class BeditaExportFilter extends BEAppModel {
 	}
 
 };
-
-?>

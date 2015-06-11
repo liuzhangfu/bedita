@@ -9,13 +9,6 @@
             ]
         ]
     )}
-
-	<!--
-	filters tab in list objects. Included in
-	/documebnts/index.tpl
-	/multimedia/index.tpl
--->
-
 *}
 
 {$defaultOptions = [
@@ -28,7 +21,8 @@
 		'customProp' => ['showObjectTypes' => false],
 		'categories' => true,
 		'mediaTypes' => false,
-		'url' => $html->url("/")|cat:$view->params.controller|cat:'/'|cat:$view->params.action
+		'url' => $html->url("/")|cat:$view->params.controller|cat:'/'|cat:$view->params.action,
+		'tags' => true
 	]
 }
 

@@ -12,7 +12,8 @@ available options:
 	'language' => true,
 	'customProp' => false,
 	'categories' => true,
-	'mediaType' => false
+	'mediaType' => false,
+	'tags' => false
 ]
 -->
 *}
@@ -75,7 +76,7 @@ available options:
 					{foreach from=$objectTypeIds item=type_id}
 						{if $type_id}
 						{strip}
-						<option value="{$type_id}">
+						<option value="{$type_id}" {if $view->SessionFilter->read('object_type_id') == $type_id}selected="selected"{/if}>
 							{$conf->objectTypes[$type_id].name|lower}
 						</option>
 						{/strip}
@@ -159,7 +160,23 @@ available options:
 				</select>
 			</div>
 		{/if}
-		
+	
+		{if !empty($filters.tags) && !empty($listTags)}
+			<div class="cell categories">
+				<label>{t}tags{/t}:</label>
+				<select name="filter[tag]">
+					<option value="">{t}all{/t}</option>
+					{foreach $listTags as $tag}
+						{strip}
+						<option value="{$tag.id}" {if $view->SessionFilter->read('tag') == $tag.id}selected="selected"{/if}>
+							{$tag.label|escape}
+						</option>
+						{/strip}
+					{/foreach}
+				</select>
+			</div>
+		{/if}
+
 		<div class="formbuttons">
 			<input type="submit" id="searchButton" value=" {t}find it{/t} ">
 			<input type="button" id="cleanFilters" value=" {t}reset filters{/t} ">

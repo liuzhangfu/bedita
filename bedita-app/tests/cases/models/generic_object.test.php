@@ -41,6 +41,12 @@ class GenericObjectTestCase extends BeditaTestCase  {
 				$model = ClassRegistry::init($object["model"]);
 				$this->checkDuplicateBehavior($model);
 				pr("<hr/>");
+
+				// check 'Callback' behavior presence
+				$isIn = in_array('Callback', $model->actsAs);
+				$this->assertTrue($isIn);
+				$this->assertTrue($model->Behaviors->attached('Callback'));
+				$this->assertTrue($model->Behaviors->enabled('Callback'));
 			}
 		}
 	}
@@ -99,6 +105,28 @@ class GenericObjectTestCase extends BeditaTestCase  {
 			'conditions' => array('object_id' => $document->id)
 		));
 		$this->assertFalse($res);
+	}
+
+	public function testBindingsLevel() {
+		$document = ClassRegistry::init('Document');
+		$bindingsLevel = $document->getBindingsLevel();
+		$levelNames = array_keys($bindingsLevel);
+		$expectedNames = array('detailed', 'default', 'minimum', 'frontend', 'api');
+		$this->assertEqual($levelNames, $expectedNames);
+
+		$bindingsLevel = $document->getBindingsLevel('foo');
+		$this->assertFalse($bindingsLevel);
+
+		$expected = array('BEObject' => array('RelatedObject'));
+		$newLevel = 'foo';
+		$document->setBindingsLevel($newLevel, $expected);
+		$result = $document->getBindingsLevel($newLevel);
+		$this->assertEqual($result, $expected);
+
+		$expectedNames[] = $newLevel;
+		$bindingsLevel = $document->getBindingsLevel();
+		$levelNames = array_keys($bindingsLevel);
+		$this->assertEqual($levelNames, $expectedNames);
 	}
 
 	private function insertAndCheck(Model $model, array &$d) {

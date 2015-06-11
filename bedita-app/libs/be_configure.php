@@ -141,7 +141,15 @@ class BeConfigure {
 		$configurations["filters"] = $filters;
 		
 		Cache::write('beConfig', $configurations);
-		
+
+        // Flush loaded models and classes, so that classes are re-instantiated with configuration already available.
+        // Get and restore the Session object in the registry to avoid issues on next session operations
+        $sessionObject = ClassRegistry::getObject('Session');
+        ClassRegistry::flush();
+        if ($sessionObject) {
+            ClassRegistry::addObject('Session', $sessionObject);
+        }
+
 		return $configurations;
 	}
 	

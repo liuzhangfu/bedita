@@ -103,6 +103,13 @@ class DataTransfer extends BEAppModel
             'Version',
             'Permission',
             'Annotation',
+            'area_id',
+            'object_path',
+            'parent_id',
+            'parent_path',
+            'priority',
+            'priority_order',
+            'syndicate'
         ),
         'contain' => array(
             'BEObject' => array(
@@ -475,6 +482,7 @@ class DataTransfer extends BEAppModel
                 $this->trackDebug('2.2 sections:');
                 foreach ($objects as $parent) {
                     $filter = array(
+                        'Section.*' => '',
                         'object_type_id' => $conf->objectTypes['section']['id']
                     );
                     $sections = $this->findObjects($parent, null, 'on', $filter, null, true, 1, null, true, array());
@@ -482,7 +490,9 @@ class DataTransfer extends BEAppModel
                         foreach ($sections['items'] as $section) {
                             $sectionItem = array(
                                 'id' => $section['id'],
-                                'parent' => $section['parent_id']
+                                'parent' => $section['parent_id'],
+                                'priority_order' => $section['priority_order'],
+                                'syndicate' => $section['syndicate']
                             );
                             if (!empty($section['priority'])) {
                                 $sectionItem['priority'] = $section['priority'];
@@ -515,10 +525,14 @@ class DataTransfer extends BEAppModel
                 $this->trackDebug('... extracting orphans (objects not in tree)');
                 $orphanIds = $this->orphans(array_keys($this->export['destination']['byType']['ARRAY']['objects']));
                 foreach ($orphanIds as $objId) {
-                    $objModel = ClassRegistry::init('BEObject');
+                    $model = ClassRegistry::init('BEObject')->getType($objId);
+                    $objModel = ClassRegistry::init($model);
+                    $objModel->contain(
+                        $this->modelBinding($model, $objModel)
+                    );
                     $obj = $objModel->findById($objId);
                     if (!empty($obj)) {
-                        $this->prepareObjectForExport($obj['BEObject']);
+                        $this->prepareObjectForExport($obj);
                     } else {
                         $this->trackDebug('... object ' . $objId . 'not found');
                     }
@@ -567,10 +581,37 @@ class DataTransfer extends BEAppModel
             }
             $this->trackDebug('4 config');
             $this->trackDebug('4.1 config.customProperties:');
+            if ($this->export['all'] === true) {
+                $this->trackDebug('... extracting all custom properties');
+                $p = array();
+                if (empty($this->export['types'])) {
+                    $p = ClassRegistry::init('Property')->find(
+                        'all', array(
+                            'contain' => array('PropertyOption')
+                        )
+                    );
+                } else {
+                    $p = ClassRegistry::init('Property')->find(
+                        'all', array(
+                            'conditions' => array('object_type_id' => $this->export['objectTypeIds']),
+                            'contain' => array('PropertyOption')
+                        )
+                    );
+                }
+                if (!empty($p)) {
+                    foreach ($p as $cproperty) {
+                        $this->export['customProperties'][$cproperty['id']] = $cproperty;
+                        unset($this->export['customProperties'][$cproperty['id']]['id']);
+                    }
+                }
+            }
             if (!empty($this->export['customProperties'])) {
                 $propertiesNew = array();
                 foreach ($this->export['customProperties'] as $property) {
                     $objectType = Configure::read('objectTypes.' . $property['object_type_id'] . '.name');
+                    if (!$this->objectTypeAllowed($property['object_type_id'])) {
+                        continue;
+                    }
                     $propertyNew = array();
                     $propertyNew['name'] = $property['name'];
                     $propertyNew['objectType'] = $objectType;
@@ -1350,12 +1391,13 @@ class DataTransfer extends BEAppModel
                     }
                 }
             }
-            if (!empty($object['lang_texts'])) {
+            if (!empty($object['LangText'])) {
                 $this->trackDebug('2.3.7 save object.langTexts');
                 $this->trackDebug('- saving lang texts for ' . $object['objectType'] . ' ' . $object['id'] . ' with BEdita id ' . $model->id);
+                $langTexts = $object['LangText'];
                 $object['LangText'] = array();
                 $langTextModel = ClassRegistry::init('LangText');
-                foreach ($object['lang_texts'] as $lang => $fields) {
+                foreach ($langTexts as $lang => $fields) {
                     foreach ($fields as $name => $text) {
                         $langTxt = array(
                             'object_id' => $model->id,
@@ -1520,7 +1562,7 @@ class DataTransfer extends BEAppModel
         if (isset($object['RelatedObject']) && $level < $this->maxRelationLevels) {
             foreach ($object['RelatedObject'] as $relation) {
                 $relationObjectTypeId = $this->objectTypeId($relation['object_id']);
-                if (!$this->objectTypeAllowed($relation['object_id'], $relationObjectTypeId)) {
+                if (!$this->objectTypeAllowed($relationObjectTypeId)) {
                     continue;
                 }
                 if ($this->export['relations'] == NULL || in_array($relation['switch'], $this->export['relations'])) {
@@ -1563,8 +1605,7 @@ class DataTransfer extends BEAppModel
                     $langTexts[$lang][$name] = $text;
                 }
             }
-            $object['lang_texts'] = $langTexts;
-            unset($object['LangText']);
+            $object['LangText'] = $langTexts;
         }
         if (isset($object['GeoTag'])) {
             foreach ($object['GeoTag'] as &$geoTag) {
@@ -1649,7 +1690,7 @@ class DataTransfer extends BEAppModel
         $this->trackDebug('... prepareObjectForExport for object id ' . $object['id']);
         if (!empty($object['object_type_id'])) {
             $object['objectType'] = Configure::read('objectTypes.' . $object['object_type_id'] . '.name');
-            if (!$this->objectTypeAllowed($object['id'], $object['object_type_id'])) {
+            if (!$this->objectTypeAllowed($object['object_type_id'])) {
                 return;
             }
         }
@@ -1680,7 +1721,7 @@ class DataTransfer extends BEAppModel
                         continue;
                     }
                     $objectTypeId = $this->objectTypeId($relatedObjectId);
-                    if (!$this->objectTypeAllowed($relatedObjectId, $objectTypeId)) {
+                    if (!$this->objectTypeAllowed($objectTypeId)) {
                         continue;
                     }
                     if (isset($conf->objectTypes[$objectTypeId])) {
@@ -1790,7 +1831,7 @@ class DataTransfer extends BEAppModel
         $tree->unbindModel(array('belongsTo' => array('BEObject')));
     }
 
-    private function objectTypeAllowed($objId, $objectTypeId) {
+    private function objectTypeAllowed($objectTypeId) {
         if ($this->export['types'] != NULL && !empty($this->export['exclude-other-types'])) {
             // if 'exclude-other-types' then verify object type is one of 'types'
             if (!in_array($objectTypeId, $this->export['objectTypeIds'])) {
@@ -1820,13 +1861,18 @@ class DataTransfer extends BEAppModel
         ));
         $objsInTree = array_values($objsInTree);
         $objsInTree = array_merge($objsToSkip);
+        $conditions = array(
+            'NOT' => array('BEObject.id' => $objsInTree)
+        );
+        if (!empty($this->export['types'])) {
+            $conditions['object_type_id'] = $this->export['objectTypeIds'];
+        }
         $objModel = ClassRegistry::init('BEObject');
-        return $objModel->find('list', array(
+        $result = $objModel->find('list', array(
             'fields' => array('id'),
-            'condition' => array(
-                'NOT' => array('BEObject.id' => $objsInTree)
-            )
+            'conditions' => $conditions
         ));
+        return $result;
     }
 
     /**
