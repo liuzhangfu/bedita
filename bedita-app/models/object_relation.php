@@ -1,32 +1,32 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2008-2014 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
 /**
  * Object relations model
- * 
+ *
  */
 class ObjectRelation extends BEAppModel
 {
 
-    public function afterFind($results) {
+    public function afterFind($results, $primary = false) {
         if (!empty($results[0][$this->alias])) {
             foreach ($results as &$r) {
                 if (!empty($r[$this->alias]['params'])) {
@@ -41,14 +41,14 @@ class ObjectRelation extends BEAppModel
         }
         return $results;
     }
-    
+
     /**
 	 * Create relation between objects
 	 *
 	 * TODO: sql query, not working with cake ->save() .. why??
 	 *
 	 * cake->save() doesn't work beacuse of table structure. It should be id primary key, object_id, related_object_id, switch, priority)
-	 * 
+	 *
 	 * @param int $id
 	 * @param int $objectId
 	 * @param string $switch
@@ -84,7 +84,7 @@ class ObjectRelation extends BEAppModel
 			$rel = $this->query("SELECT MAX(priority)+1 AS priority FROM object_relations WHERE id={$id} AND switch='{$switch}'");
 			$priority = (empty($rel[0][0]["priority"]))? 1 : $rel[0][0]["priority"];
 		}
-		// #CUSTOM QUERY 
+		// #CUSTOM QUERY
 		$jParams = json_encode($params);
 		$q = "INSERT INTO object_relations (id, object_id, switch, priority, params) VALUES ({$id}, {$objectId}, '{$switch}', {$priority}, '{$jParams}')";
 		$res = $this->query($q);
@@ -98,17 +98,17 @@ class ObjectRelation extends BEAppModel
 
 		$inverseRel = $this->query("SELECT priority FROM object_relations WHERE id={$objectId}
 									AND object_id={$id} AND switch='{$inverseSwitch}'");
-							
+
 		if (empty($inverseRel[0]["object_relations"]["priority"])) {
 			// #CUSTOM QUERY
 			$inverseRel = $this->query("SELECT MAX(priority)+1 AS priority FROM object_relations WHERE id={$objectId} AND switch='{$inverseSwitch}'");
 			$inversePriority = (empty($inverseRel[0][0]["priority"]))? 1 : $inverseRel[0][0]["priority"];
 		} else {
 			$inversePriority = $inverseRel[0]["object_relations"]["priority"];
-		}						
+		}
 		// #CUSTOM QUERY
 		$q= "INSERT INTO object_relations (id, object_id, switch, priority, params) VALUES ({$objectId}, {$id}, '{$inverseSwitch}', {$inversePriority}, '{$jParams}')" ;
-		return $this->query($q);	
+		return $this->query($q);
 	}
 
 	/**
@@ -219,7 +219,7 @@ class ObjectRelation extends BEAppModel
 
     /**
      * Updates parameters of a relation between objects.
-     * 
+     *
      * @param int $id
      * @param int $objectId
      * @param string $switch
@@ -343,7 +343,7 @@ class ObjectRelation extends BEAppModel
         }
         return json_decode($pri[0]["object_relations"]["params"], $assoc);
     }
-	
+
     /**
      * Returns array of available relations for an $objectType
      * relations with 'hidden' => true are excluded

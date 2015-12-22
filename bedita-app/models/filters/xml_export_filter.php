@@ -38,7 +38,7 @@ class XmlExportFilter extends BeditaExportFilter
      * @return array
      * @see DataTransfer::export()
      */
-    public function export(array $objects, array $options = array()) {
+    public function export(array &$objects, array $options = array()) {
         $tmpDir = TMP . 'xml' . DS . md5(time());
         if(!is_dir($tmpDir)) {
             if(!is_dir(TMP . 'xml')) {

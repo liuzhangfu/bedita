@@ -158,7 +158,7 @@ class ModelBehavior extends Object {
  * @access public
  * @return mixed
  */
-    function dispatchMethod(&$model, $method, $params = array()) {
+    function dispatchMethod($model, $method, $params = array()) {
         if (empty($params)) {
             return $this->{$method}($model);
         }
@@ -434,7 +434,7 @@ class BehaviorCollection extends Object {
  * @return array All methods for all behaviors attached to this object
  * @access public
  */
-    function dispatchMethod(&$model, $method, $params = array(), $strict = false) {
+    function dispatchMethod($model, $method, $params = array(), $strict = false) {
         $methods = array_keys($this->__methods);
         foreach ($methods as $key => $value) {
             $methods[$key] = strtolower($value);

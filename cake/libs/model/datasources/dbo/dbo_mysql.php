@@ -439,7 +439,7 @@ class DboMysqlBase extends DboSource {
 /**
  * Returns an detailed array of sources (tables) in the database.
  *
- * @param string $name Table name to get parameters 
+ * @param string $name Table name to get parameters
  * @return array Array of tablenames in the database
  */
     function listDetailedSources($name = null) {
@@ -618,7 +618,7 @@ class DboMysql extends DboMysqlBase {
  *
  * @return array Array of tablenames in the database
  */
-    function listSources() {
+    function listSources($data = null) {
         $cache = parent::listSources();
         if ($cache != null) {
             return $cache;
@@ -704,7 +704,7 @@ class DboMysql extends DboMysqlBase {
  *
  * @return integer Number of affected rows
  */
-    function lastAffected() {
+    function lastAffected($source = null) {
         if ($this->_result) {
             return mysql_affected_rows($this->connection);
         }
@@ -717,7 +717,7 @@ class DboMysql extends DboMysqlBase {
  *
  * @return integer Number of rows in resultset
  */
-    function lastNumRows() {
+    function lastNumRows($source = null) {
         if ($this->hasResult()) {
             return mysql_num_rows($this->_result);
         }

@@ -46,7 +46,7 @@ class DeleteObjectBehavior extends ModelBehavior {
      * @param Model $model
      * @return boolean
      */
-    public function beforeDelete(&$model) {
+    public function beforeDelete(&$model, $cascade = true) {
         // prepare objects to delete from cache
         if ($model->BEObject->isCacheableOn()) {
             $model->BEObject->setObjectsToClean($model->id);

@@ -249,7 +249,7 @@ class CacheableBehavior extends ModelBehavior {
      * @param boolean $cascade
      * @return boolean
      */
-    public function beforeDelete(&$model, $cascade) {
+    public function beforeDelete(&$model, $cascade = true) {
         if ($this->on) {
             $this->setObjectsToClean($model, $model->id);
         }

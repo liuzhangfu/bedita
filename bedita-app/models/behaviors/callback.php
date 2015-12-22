@@ -108,7 +108,7 @@ class CallbackBehavior extends ModelBehavior {
      * @param array $config Configuration.
      * @access public
      */
-    public function setup(Model &$model, array $config = array()) {
+    public function setup(&$model, $config = array()) {
         if (array_key_exists($model->alias, $this->config)) {
             // Already configured.
             return;
@@ -181,7 +181,7 @@ class CallbackBehavior extends ModelBehavior {
      * @param Model $model Model.
      * @access public
      */
-    public function cleanup(Model &$model) {
+    public function cleanup(&$model) {
         foreach ($this->config[$model->alias]['_behaviors'] as $beh) {
             // Detach previously attached behaviors.
             $model->Behaviors->detach($beh);
@@ -203,7 +203,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function beforeFind(Model &$model, array $query) {
+    public function beforeFind(&$model, $query) {
         $evt = $this->manager()->trigger("{$model->alias}.BeforeFind", array(
             'model' => &$model,
             'query' => $query,
@@ -220,7 +220,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function afterFind(Model &$model, $results, $primary) {
+    public function afterFind(&$model, $results, $primary) {
         $evt = $this->manager()->trigger("{$model->alias}.AfterFind", array(
             'model' => &$model,
             'results' => $results,
@@ -236,7 +236,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function beforeValidate(Model &$model) {
+    public function beforeValidate(&$model) {
         $evt = $this->manager()->trigger("{$model->alias}.BeforeValidate", array(
             'model' => &$model,
         ));
@@ -250,7 +250,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function beforeSave(Model &$model) {
+    public function beforeSave(&$model) {
         $evt = $this->manager()->trigger("{$model->alias}.BeforeSave", array(
             'model' => &$model,
         ));
@@ -265,7 +265,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function afterSave(Model &$model, $created) {
+    public function afterSave(&$model, $created) {
         $evt = $this->manager()->trigger("{$model->alias}.AfterSave", array(
             'model' => &$model,
             'created' => $created,
@@ -281,7 +281,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function beforeDelete(Model &$model, $cascade = true) {
+    public function beforeDelete(&$model, $cascade = true) {
         $evt = $this->manager()->trigger("{$model->alias}.BeforeDelete", array(
             'model' => &$model,
             'cascade' => $cascade,
@@ -296,7 +296,7 @@ class CallbackBehavior extends ModelBehavior {
      * @return mixed Result.
      * @access public
      */
-    public function afterDelete(Model &$model) {
+    public function afterDelete(&$model) {
         $evt = $this->manager()->trigger("{$model->alias}.AfterDelete", array(
             'model' => &$model,
         ));

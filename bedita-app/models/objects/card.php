@@ -1,21 +1,21 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2010-2015 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
@@ -40,7 +40,7 @@ class Card extends BEAppObjectModel {
 
 	var $actsAs 	= array(
 			'CompactResult' 		=> array("MailGroup", "GeoTag")
-	); 
+	);
 
     protected $modelBindings = array(
         'detailed' =>  array(
@@ -91,14 +91,14 @@ class Card extends BEAppObjectModel {
     );
 
 	public $objectTypesGroups = array("leafs", "related");
-	
+
 	var $hasAndBelongsToMany = array(
 			"MailGroup" => array(
 							"joinTable"	=> "mail_group_cards",
 							"with" => "MailGroupCard"
 						)
 		);
-	
+
 //	var $hasMany = array() ;
 
 	var $validate = array(
@@ -136,20 +136,20 @@ class Card extends BEAppObjectModel {
 			"Web Page" => "website", "Personal Web Page" => "website",
  	        'Mail Group' => 'mail_group'
 		);
- 	
- 	// default CSV delimiter is ',' 
+
+ 	// default CSV delimiter is ','
  	const DEFAULT_CSV_DELIMITER = ',';
  	private $csvDelimiter = self::DEFAULT_CSV_DELIMITER;
- 	
-	function beforeValidate() {
-		
+
+	function beforeValidate($options = array()) {
+
 		$this->checkDate('birthdate');
 		$this->checkDate('deathdate');
 
 		return true;
 	}
-	
-	function beforeSave() {	
+
+	function beforeSave($options = array()) {
 		if(empty($this->data["Card"]["email"]) && empty($this->data["Card"]["newsletter_email"]) ) {
 			unset($this->data["Card"]["joinGroup"]);
 		}
@@ -158,20 +158,20 @@ class Card extends BEAppObjectModel {
 		}
 		return true;
 	}
-	
+
 	function afterSave($created) {
 		// save join with mail groups
 		if (!empty($this->data["Card"]["joinGroup"])) {
-		
+
 			if (empty($this->id))
 				throw new BeditaException(__("Error saving card", true), "Missing model id in afterSave.");
-			
+
 			$mailGroupCard = ClassRegistry::init("MailGroupCard");
-			
+
 			$mailGroupCard->deleteAll(array("card_id" => $this->id));
-				
+
 			foreach ($this->data["Card"]["joinGroup"] as $joinData) {
-				
+
 				// rebuild active join
 				if (!empty($joinData["mail_group_id"])) {
 					$joinData["card_id"] = $this->id;
@@ -181,13 +181,13 @@ class Card extends BEAppObjectModel {
 
 				}
 			}
-			
+
 		}
 
 		return true;
 	}
-	
-	
+
+
     private function setupCsvDelimiter($options) {
         if (!empty($options['delimiter'])) {
             $this->csvDelimiter = $options['delimiter'];
@@ -202,7 +202,7 @@ class Card extends BEAppObjectModel {
      * @param string $csvFile,
      *            path to csv file file
      * @param array $options,
-     *            default attributes/array to use, 
+     *            default attributes/array to use,
      *              e.g. categories, 'Category' => array (1,3,4..) - array of id-categories
      *            'overwritePolicy' - card with same email exists, values = 'skip'(default), 'overwrite', 'new'
      * @return results array, num of objects saved ('numSaved') and other data
@@ -244,10 +244,10 @@ class Card extends BEAppObjectModel {
             $k = null;
             if (! empty($this->csvFields[$f])) {
                 $k = $this->csvFields[$f];
-            } else 
+            } else
                 if (in_array($fieldNameLow, $beFields)) {
                     $k = $fieldNameLow;
-                } else 
+                } else
                     if (! empty($customCsvFields[$fieldNameLow])) {
                         $k = $customCsvFields[$fieldNameLow];
                     }
@@ -275,7 +275,7 @@ class Card extends BEAppObjectModel {
             }
             $d = array_merge($defaults, $data);
             if (! empty($d['surname']) || ! empty($d['name'])) {
-                $d['title'] = ((! empty($d['name'])) ? $d['name'] : '') . ' ' 
+                $d['title'] = ((! empty($d['name'])) ? $d['name'] : '') . ' '
                     . ((! empty($d['surname'])) ? $d['surname'] : '');
             }
             // check mail_groups field
@@ -317,7 +317,7 @@ class Card extends BEAppObjectModel {
             if ($saveCard) {
                 $this->create();
                 if (! $this->save($d)) {
-                    throw new BeditaException(__('Error saving card'), print_r($d, true) . 
+                    throw new BeditaException(__('Error saving card'), print_r($d, true) .
                         " \nrow: $row \nvalidation: " . print_r($this->validationErrors, true));
                 }
                 $numSaved++;
@@ -339,8 +339,8 @@ class Card extends BEAppObjectModel {
 
     /**
      * Get Microsoft Outlook CSV header or custom CSV header
-     * 
-     * @param array $options, may contain 
+     *
+     * @param array $options, may contain
      *      - 'delimiter' => '<char delimiter to use>' default is ','
      *      - 'custom' => true (use custom format) default false
      * @return string, single line as string
@@ -377,7 +377,7 @@ class Card extends BEAppObjectModel {
     /**
      * Export model data to Microsoft Outlook CSV format or custom CSV format
      *
-     * @param array $options, may contain 
+     * @param array $options, may contain
      *      - 'delimiter' => '<char delimiter to use>' default is ','
      *      - 'custom' => true (use custom format) default false
      * @param array $data, object data to export
@@ -418,7 +418,7 @@ class Card extends BEAppObjectModel {
     /**
      * Generate CSV file content as string from cards data array
      *
-     * @param array $options, may contain 
+     * @param array $options, may contain
      *      - 'delimiter' => '<char delimiter to use>' default is ','
      *      - 'custom' => true (use custom format) default false
      * @param array $data, object data to export
@@ -436,7 +436,7 @@ class Card extends BEAppObjectModel {
 	 * Import a vCard/vcf file
 	 *
 	 * @param string $cardFile, path to vcard file
-	 * @param array $options, default attributes array to use, 
+	 * @param array $options, default attributes array to use,
 	 *  e.g. categories, "Category" => array (1,3,4..) - array of id-categories
 	 * @return results array, num of objects saved ("numSaved") and other data
 	 */
@@ -445,18 +445,18 @@ class Card extends BEAppObjectModel {
 		if (!$lines) {
 			throw new BeditaException(__("Error reading vCard file") . ": " . $cardFile);
 		}
-		$defaults = array( 
+		$defaults = array(
 			"status" => "on",
 			"user_created" => "1",
 			"user_modified" => "1",
 			"lang" => Configure::read("defaultLang"),
 			"ip_created" => "127.0.0.1",
 		);
-		
+
 		if(!empty($options)) {
 			$defaults = array_merge($defaults, $options);
 		}
-		
+
 		$numSaved = 0;
 		$cards = $this->parseVCards($lines);
 		foreach ($cards as $c) {
@@ -468,12 +468,12 @@ class Card extends BEAppObjectModel {
 						"contain" => array("BEObject")));
 			if($currdata != false) {
 				if(!empty($data["modified"]) && $data["modified"] < $currdata["modified"]) {
-					$data = array_merge($data, $currdata);					
+					$data = array_merge($data, $currdata);
 				} else {
-					$data = array_merge($currdata, $data);					
+					$data = array_merge($currdata, $data);
 				}
 			}
-			
+
 			if(!$this->save($data)) {
 				throw new BeditaException(__("Error saving card"), print_r($c, true) . " \nvalidation: " . print_r($this->validationErrors, true));
 			}
@@ -487,9 +487,9 @@ class Card extends BEAppObjectModel {
     }
 
 	/**
-	 * Export model data to VCard format 
+	 * Export model data to VCard format
 	 *
-	 * @param array, data to export - if missing current data are loaded, using $this->id 
+	 * @param array, data to export - if missing current data are loaded, using $this->id
 	 */
 	public function exportVCard(array $data = null) {
         if (empty($data)) {
@@ -519,7 +519,7 @@ class Card extends BEAppObjectModel {
 		$res .= "END:VCARD\n";
 		return $res;
 	}
-	
+
 	private function vcardLine($vline, $field, array& $data) {
 		$res = "";
 		if(!empty($data[$field])) {
@@ -529,7 +529,7 @@ class Card extends BEAppObjectModel {
 	}
 
 	private function parseVCards(&$lines) {
-		App::import('vendor', "VCard", true, array(), "vcard.php");		
+		App::import('vendor', "VCard", true, array(), "vcard.php");
 		$cards = array();
 		$done = false;
 		while (!$done) {
@@ -537,32 +537,32 @@ class Card extends BEAppObjectModel {
 			if(!$card->parse($lines)) {
 				$done = true;
 			} else {
-			
+
 				$nProp = $card->getProperty('N');
 				if (!empty($nProp)) {
 					$n = $nProp->getComponents();
 				}
 				$item["name"] = !empty($n[1]) ? trim($n[1]) : null;
 				$item["surname"] = !empty($n[0]) ? trim($n[0]) : null;
-				
+
 				$fnProp = $card->getProperty('FN');
-				
+
 				$nameProp = $card->getProperty('NAME');
 				$emailProp = $card->getProperties('EMAIL');
 				$telProp = $card->getProperties('TEL');
 				$orgProp = $card->getProperty('ORG');
-				
+
 				$item = array();
 				$item["title"] = !empty($nameProp->value) ? trim($nameProp->value) : (!empty($fnProp->value) ? trim($fnProp->value) : null );
-				
+
 
 				$item["email"] = !empty($emailProp[0]->value) ? trim($emailProp[0]->value) : null;
 				$item["phone"] = !empty($telProp[0]->value) ? trim($telProp[0]->value) : null;
 				$item["email2"] = !empty($emailProp[1]->value) ? trim($emailProp[1]->value) : null;
 				$item["phone2"] = !empty($telProp[1]->value) ? trim($telProp[1]->value) : null;
-							
+
 				if(empty($item["title"])) {
-					$item["title"] = (!empty($item["name"]) ? $item["name"] : "") . 
+					$item["title"] = (!empty($item["name"]) ? $item["name"] : "") .
 						(!empty($item["surname"]) ? " " . $item["surname"] : "");
 				}
 				$item["company_name"] = !empty($orgProp->value) ? trim($orgProp->value) : null;
@@ -573,7 +573,7 @@ class Card extends BEAppObjectModel {
 					if($d !== false) {
 						$item["modified"] = $d->format("Y-m-d H:i");
 					}
-				}		
+				}
 				$cards[] = $item;
 			}
 		}

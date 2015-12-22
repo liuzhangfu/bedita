@@ -82,7 +82,7 @@ class BeHtmlHelper extends HtmlHelper {
      * @param array $mergeParams Array of URL parameters to be merged to URL.
      * @return string HTML tag `<a>`.
      */
-    public function link ($title, $url = null, array $options = null, $confirmMessage = false, array $mergeParams = null) {
+    public function link ($title, $url = null, $options = array(), $confirmMessage = false, array $mergeParams = null) {
         return parent::link($title, $this->parse($url, $mergeParams), $options, $confirmMessage);
     }
 
@@ -98,21 +98,21 @@ class BeHtmlHelper extends HtmlHelper {
     public function url ($url = null, $full = false, array $mergeParams = null) {
         return parent::url($this->parse($url, $mergeParams), $full);
     }
-    
+
     public function hyphen($text, $lang = null, $excludeSelectors = array('.formula'), $excludeSelectorDefaults = array('pre', 'code', 'embed', 'object', 'iframe', 'img', 'svg', 'video', 'audio', 'script', 'style', 'head', 'sub', 'sup')) {
         if (empty($lang)) {
             $lang = Configure::read('defaultLang');
         }
-    
+
         App::Import('Vendor', 'simple_html_dom');
         App::import('Vendor', 'Hyphenator', array('file' => 'hyphenator' . DS . 'Hyphenator.php'));
-    
+
         $hyphenator = ClassRegistry::getObject('Hyphenator');
         if (!$hyphenator) {
             $hyphenator = new Hyphenator();
             ClassRegistry::addObject('Hyphenator', $hyphenator);
         }
-    
+
         $excludeSelectors = array_merge($excludeSelectorDefaults, $excludeSelectors);
         $restore = array();
         if (!empty($excludeSelectors)) {
@@ -132,13 +132,13 @@ class BeHtmlHelper extends HtmlHelper {
             }
             $text = $body->innertext;
         }
-    
+
         $text = $hyphenator->hyphenate($text, $lang);
-    
+
         foreach ($restore as $key => $value) {
             $text = str_replace('<!-- be-not-hyphen-' . $key . ' -->', $value, $text);
         }
-    
+
         return $text;
     }
 

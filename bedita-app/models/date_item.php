@@ -188,7 +188,7 @@ class DateItem extends BEAppModel
      *
      * @return bool Returns `true`.
      */
-    public function beforeValidate() {
+    public function beforeValidate($options = array()) {
         $data = $this->data[$this->name];
         if (empty($data['id']) && empty($data['start_date']) && empty($data['end_date']) && empty($data['duration'])) {
             // Skip save if no (valid) data is present.
@@ -225,7 +225,7 @@ class DateItem extends BEAppModel
      * @param array $queryData Array with query data.
      * @return array Array with modified query data.
      */
-    public function beforeFind(array $queryData) {
+    public function beforeFind($queryData) {
         if (!empty($queryData['conditions'])) {
             $queryData['conditions'] = $this->prepareConditions($queryData['conditions']);
         }
@@ -238,7 +238,7 @@ class DateItem extends BEAppModel
      * @param mixed $results Found results.
      * @return array Formatted results.
      */
-    public function afterFind($results) {
+    public function afterFind($results, $primary = false) {
         if (empty($results[0]['DateItem'])) {
             return $results;
         }

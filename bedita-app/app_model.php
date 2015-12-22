@@ -44,7 +44,7 @@ class AppModel extends Model {
      * @param array $options
      * @return array
      */
-    public function apiTransformer($options = array()) {
+    public function apiTransformer(array $options = array()) {
         $options = array_merge($this->apiTransformerOptions, $options);
         $columnTypes = $this->getColumnTypes();
         return array_intersect($columnTypes, $options['castable']);
@@ -143,7 +143,7 @@ class BEAppModel extends AppModel {
                 $d_pos = strpos($dateFormatValidation,'dd');
                 $m_pos = strpos($dateFormatValidation,'mm');
                 $y_pos = strpos($dateFormatValidation,'yyyy');
-    
+
                 $dateType = "little-endian"; // default dd/mm/yyyy
                 if($y_pos < $m_pos && $y_pos < $d_pos) {
                     $dateType = "big-endian"; // yyyy/mm/dd
@@ -206,7 +206,7 @@ class BEAppModel extends AppModel {
 
     /**
      * Check duration format in $this->data[ModelName][$key] -> set to null if empty/invalid.
-     * 
+     *
      * @param string key
      */
     protected function checkDuration($key) {
@@ -696,13 +696,13 @@ class BEAppModel extends AppModel {
 
         if ($searchCount === null) {
             $queryCount = "SELECT COUNT(DISTINCT {$s}BEObject{$e}.{$s}id{$e}) AS count FROM {$from} {$sqlClausole}";
-    
+
             // #CUSTOM QUERY
             $tmpCount = $this->query($queryCount);
             if ($tmpCount === false) {
                 throw new BeditaException(__("Error counting objects", true));
             }
-    
+
             $size = (empty($tmpCount[0][0]["count"]))? 0 : $tmpCount[0][0]["count"];
         } else {
             $size = $searchCount;
@@ -1025,7 +1025,7 @@ class BEAppObjectModel extends BEAppModel {
      * Updates hasMany model rows:
      *   * delete all rows of hasMany models except ones with "id" set in $data array
      *   * saves/updates all hasMany data rows from $data array
-     * 
+     *
      * @throws BeditaException
      * @return boolean
      */
@@ -1039,7 +1039,7 @@ class BEAppObjectModel extends BEAppModel {
                 // delete previous associations
                 $id = (isset($this->data[$this->name]['id'])) ? $this->data[$this->name]['id'] : $this->getInsertID() ;
                 $foreignK = $assoc['foreignKey'] ;
-                
+
                 $exclude = array();
                 foreach ($this->data[$this->name][$name] as $hasManyObj){
                     if(!empty($hasManyObj["id"])){
@@ -1281,7 +1281,7 @@ class BeditaContentModel extends BEAppObjectModel {
         "note" => 2
     );
 
-    function beforeValidate() {
+    function beforeValidate($options = array()) {
         return $this->validateContent();
     }
 
@@ -1436,7 +1436,7 @@ class BeditaSimpleStreamModel extends BEAppObjectModel {
                 ),
     );
 
-    function beforeValidate() {
+    function beforeValidate($options = array()) {
         return $this->validateContent();
     }
 
@@ -1550,7 +1550,7 @@ class BeditaStreamModel extends BEAppObjectModel {
                 ),
     );
 
-    function beforeValidate() {
+    function beforeValidate($options = array()) {
         return $this->validateContent();
     }
 
@@ -1682,7 +1682,7 @@ class BeditaCollectionModel extends BEAppObjectModel {
                     'foreignKey'    => 'id',
                 )
     );
-    
+
     public function deleteCollection($id) {
         return ClassRegistry::init('Tree')->removeBranch($id);
     }

@@ -65,7 +65,7 @@ class Link extends BEAppObjectModel {
 
     public $objectTypesGroups = array('leafs', 'related');
 
-    public function beforeSave() {
+    public function beforeSave($options = array()) {
         if(!empty($this->data['Link']['url'])) { // when saveField() is called, no url checks should be done
             $url = $this->data['Link']['url'];
             if(!$this->isHttp($url) && !$this->isHttps($url)) {

@@ -42,7 +42,7 @@ class NotifyBehavior extends ModelBehavior {
     function setup(&$model, $settings=array()) {
     }
 
-    function afterSave($model, $created) {
+    function afterSave(&$model, $created) {
 
         $data = $model->data[$model->alias];
         $users = array();

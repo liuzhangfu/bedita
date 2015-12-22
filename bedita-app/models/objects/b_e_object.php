@@ -153,7 +153,7 @@ class BEObject extends BEAppModel {
      *      "prop_name_multiple_choice" => array("prop_val_1", "prop_val_2")
      *  )
      */
-    function afterFind($result) {
+    function afterFind($result, $primary = false) {
 
         // format object properties
         if(!empty($result['ObjectProperty'])) {
@@ -238,7 +238,7 @@ class BEObject extends BEAppModel {
         return $result ;
     }
 
-    function beforeSave() {
+    function beforeSave($options = array()) {
         $data;
         if(isset($this->data[$this->name]))
             $data = $this->data[$this->name] ;
@@ -286,7 +286,7 @@ class BEObject extends BEAppModel {
     /**
      * Save hasMany relations data
      */
-    function afterSave() {
+    function afterSave($created) {
 
         // hasMany relations
         foreach ($this->hasMany as $name => $assoc) {
@@ -485,7 +485,7 @@ class BEObject extends BEAppModel {
     /**
      * Define default values.
      */
-    function beforeValidate() {
+    function beforeValidate($options = array()) {
         if(isset($this->data[$this->name]))
             $data = $this->data[$this->name] ;
         else

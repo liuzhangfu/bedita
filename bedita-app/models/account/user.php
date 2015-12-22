@@ -1,31 +1,31 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2008 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
 /**
- * 
+ *
  *
  * @version			$Revision$
  * @modifiedby 		$LastChangedBy$
  * @lastmodified	$LastChangedDate$
- * 
+ *
  * $Id$
  */
 class User extends BEAppModel
@@ -70,7 +70,7 @@ class User extends BEAppModel
         'default' => array('Group', 'ObjectUser', 'UserProperty'),
         'minimum' => array()
     );
-	
+
 	var $hasAndBelongsToMany = array('Group');
 
 	var $hasMany = array(
@@ -121,7 +121,7 @@ class User extends BEAppModel
 	 */
 	function compact(&$user, $keepGroupsIds = false) {
 		unset($user['Permission']);
-		
+
 		$user['User']['groups'] = array();
 		if (!empty($user['Group'])) {
 			foreach ($user['Group'] as $group) {
@@ -147,10 +147,10 @@ class User extends BEAppModel
 				$user["User"]["UserProperty"][$up["name"]] = $value;
 			}
 		}
-		
+
 		$user = $user['User'] ;
 	}
-	
+
 	public function getUsersToNotify($conditions) {
 		$conditionBase = array("email IS NOT NULL AND email <> '' AND valid='1'");
 		$conditions = array_merge($conditionBase, $conditions);
@@ -161,8 +161,8 @@ class User extends BEAppModel
 				)
 			);
 	}
-	
-	function afterFind($results) {
+
+	function afterFind($results, $primary = false) {
 		if(!empty($results[0]) || !empty($results["User"])) {
 			foreach ($results as &$u) {
 				if (!empty($u['User']['auth_params'])) {
@@ -173,7 +173,7 @@ class User extends BEAppModel
 				}
 			}
 		}
-		
+
 		foreach ($results as &$u) {
 			// format object properties
 			if(!empty($u['UserProperty']) && is_array($u['UserProperty'])) {
@@ -187,13 +187,13 @@ class User extends BEAppModel
 					foreach ($property as $keyProp => $prop) {
 						foreach ($u["UserProperty"] as $k => $value) {
 							if ($value["property_id"] == $prop["id"]) {
-								
+
 								if ($prop["multiple_choice"] != 0) {
 									$property[$keyProp]["value"][] = $value;
-								} else { 
+								} else {
 									$property[$keyProp]["value"] = $value;
 								}
-								
+
 								// set selected to true in PropertyOption array
 								if (!empty($prop["PropertyOption"])) {
 									foreach ($prop["PropertyOption"] as $n => $option) {
@@ -213,18 +213,18 @@ class User extends BEAppModel
 				}
 			}
 		}
-		
+
 		return $results;
 	}
-	
-	public function beforeValidate() {
+
+	public function beforeValidate($options = array()) {
 		App::import('Sanitize');
 		if (!empty($this->data['User']['realname'])) {
 			$this->data['User']['realname'] = Sanitize::stripAll($this->data['User']['realname']);
 		}
 	}
 
-	function beforeSave() {
+	function beforeSave($options = array()) {
 		if (isset($this->data["User"]["email"])) {
 			if (empty($this->data["User"]["email"])) {
 				$this->data["User"]["email"] = null;
@@ -239,7 +239,7 @@ class User extends BEAppModel
 				}
 			}
 		}
-		
+
 		if (!empty($this->data["User"]["auth_params"]) && is_array($this->data["User"]["auth_params"])) {
 			$this->data["User"]["auth_params"] = serialize($this->data["User"]["auth_params"]);
 		} elseif (!empty($this->data["User"][0])) {
@@ -261,16 +261,16 @@ class User extends BEAppModel
 
 		return true;
 	}
-	
+
 	/**
 	 * Salva i dati delle associazioni tipo hasMany
 	 */
-	function afterSave() {
+	function afterSave($created) {
 		if (!empty($this->data['UserProperty'])) {
 			$this->UserProperty->deleteAll(array('user_id' => $this->id));
 			foreach($this->data['UserProperty'] as $prop) {
 				$this->UserProperty->create();
-				$prop['user_id'] = $this->id; 
+				$prop['user_id'] = $this->id;
 				if (!$this->UserProperty->save($prop))
 					throw new BeditaException(__("Error saving user", true), "Error saving hasMany user property");
 			}
@@ -326,7 +326,7 @@ class User extends BEAppModel
         $this->id = $uid;
 	}
 
-	function beforeDelete() {
+	function beforeDelete($cascade = true) {
 		$beObject = ClassRegistry::init("BEObject");
 		$res = $beObject->find('list', array(
 			"conditions" => "user_created=" . $this->id
