@@ -162,7 +162,7 @@ class ApiFormatterComponent extends Object {
      * @return void
      */
     public function initialize(Controller $controller, array $settings = array()) {
-        $this->controller = &$controller;
+        $this->controller = $controller;
         if (isset($settings['objectFieldsToRemove']) && is_array($settings['objectFieldsToRemove'])) {
             $this->objectFieldsToRemove($settings['objectFieldsToRemove'], true);
         }

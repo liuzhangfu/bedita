@@ -111,7 +111,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             if (is_array($compare)) {
                 sort($compare);
             }
@@ -352,7 +352,7 @@
             if ($this->test($compare)) {
                 return $this->_describeTextMatch($this->_getSubstring(), $compare);
             } else {
-                $dumper = &$this->_getDumper();
+                $dumper = $this->_getDumper();
                 return "Text [" . $this->_getSubstring() .
                         "] not detected in [" .
                         $dumper->describeValue($compare) . "]";
@@ -368,7 +368,7 @@
          */
         function _describeTextMatch($substring, $subject) {
             $position = strpos($subject, $substring);
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return "Text [$substring] detected at character [$position] in [" .
                     $dumper->describeValue($subject) . "] in region [" .
                     $dumper->clipString($subject, 100, $position) . "]";
@@ -413,7 +413,7 @@
          */
         function testMessage($compare) {
             if ($this->test($compare)) {
-                $dumper = &$this->_getDumper();
+                $dumper = $this->_getDumper();
                 return "Text [" . $this->_getSubstring() .
                         "] not detected in [" .
                         $dumper->describeValue($compare) . "]";
@@ -484,7 +484,7 @@
          *    @access public
          */
         function setBrowser(&$browser) {
-            return $this->_browser = &$browser;
+            return $this->_browser = $browser;
         }
           
         /**
@@ -503,7 +503,7 @@
          *    @access public
          */
         function &createBrowser() {
-            $browser = &new SimpleBrowser();
+            $browser = new SimpleBrowser();
             return $browser;
         }
         

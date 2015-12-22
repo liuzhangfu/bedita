@@ -1,36 +1,36 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2009 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
 /**
  * Transaction component
- * 
+ *
  *
  * @version			$Revision$
  * @modifiedby 		$LastChangedBy$
  * @lastmodified	$LastChangedDate$
- * 
+ *
  * $Id$
  */
 class TransactionComponent extends Object {
-	
+
 	private static $dbConfig	= 'default' ;
 	private static $db			= null ;
 	private static $transFS		= null;
@@ -39,21 +39,21 @@ class TransactionComponent extends Object {
 	const ROLLBACK=20;
 	const COMMIT=30;
 	private $status = NULL;
-	
+
 	function __construct($dbConfigName = 'default', $pathTmp = '/tmp') {
 		$this->init($dbConfigName, $pathTmp) ;
-	} 
-	
+	}
+
 	function init($dbConfigName = 'default', $pathTmp = '/tmp') {
 		if(!isset(self::$transFS)) {
 			self::$transFS = new TransactionFS($pathTmp) ;
 		}
 		self::$dbConfig 		= (isset($dbConfigName))?$dbConfigName:'default' ;
 		self::$transFS->tmpPath = $pathTmp ;
-		
+
 		$this->setupDB() ;
 		$this->status = self::INIT;
-		
+
 	}
 
 	public function started() {
@@ -76,7 +76,7 @@ class TransactionComponent extends Object {
 
 	/**
 	 * End a transaction
-	 * 
+	 *
 	 * @return boolean
 	 * @throws BeditatException
 	 */
@@ -86,18 +86,18 @@ class TransactionComponent extends Object {
 			return $this->commit();
 		if($this->status === self::COMMIT || $this->status === self::ROLLBACK)
 			return true;
-		else 
+		else
 			throw new BeditatException(__("Bad transaction state",true));
 	}
 
 	/**
 	 * Commit a transaction
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function commit() {
 		$this->setupDB() ;
-		
+
 		self::$transFS->commit() ;
 		if(!self::$db->execute('COMMIT')) return false ;
 		$this->status = self::COMMIT;
@@ -109,7 +109,7 @@ class TransactionComponent extends Object {
 
 	/**
 	 * Rollback a transaction
-	 * 
+	 *
 	 * @return boolean
 	 * @throws BeditaException
 	 * @throws Exception
@@ -119,21 +119,21 @@ class TransactionComponent extends Object {
 		$ret = false;
 		try {
 			$this->setupDB() ;
-			
+
 	        self::$transFS->rollback() ;
-			if(!self::$db->execute('ROLLBACK') && $this->status === self::START) 
+			if(!self::$db->execute('ROLLBACK') && $this->status === self::START)
 			  throw new BeditaException("Rollback error!");
 			$this->status = self::ROLLBACK;
 			$ret = true;
 		} catch (BeditaException $be) {
-			
+
 			$this->log($be->errorTrace());
-						
+
         } catch (Exception $e) {
 
-        	$errTrace =  $ex->getMessage()."\nFile: ".$ex->getFile()." - line: ".$ex->getLine()."\nTrace:\n".$ex->getTraceAsString();   
+        	$errTrace =  $ex->getMessage()."\nFile: ".$ex->getFile()." - line: ".$ex->getLine()."\nTrace:\n".$ex->getTraceAsString();
         	$this->log($errTrace);
-       	
+
         }
 
 		if (Configure::read("bedita.transaction")) {
@@ -141,7 +141,7 @@ class TransactionComponent extends Object {
 		}
         return $ret;
 	}
-	
+
 	//////////////////////////////////////////
 	//////////////////////////////////////////
 
@@ -150,13 +150,13 @@ class TransactionComponent extends Object {
 	 */
 	private function setupDB() {
 		if(isset(self::$db)) return ;
-		
+
 		if(!class_exists('ConnectionManager')) {
 			App::import('Model', 'ConnectionManger') ;
 		}
-		
+
 		if(isset(self::$dbConfig))
-			self::$db =& ConnectionManager::getDataSource(self::$dbConfig);
+			self::$db = ConnectionManager::getDataSource(self::$dbConfig);
 	}
 
 	/**
@@ -261,11 +261,11 @@ class TransactionComponent extends Object {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
- * 
+ *
  * On object creation, if there are pending operations, 'rollback' is called.
  * Operations are permanent, after 'commit'.
  * File to delete copies are moved to a temporary directory.
- * 
+ *
  * sample data structure:
  * array(
  *	array("cmd" => <command>, "roolCmd" => <command>, "params" => array(..)),
@@ -281,7 +281,7 @@ class TransactionFS {
 	var $errorMsg				= "" ;				// Last error
 	var $error					= false ;			// true if a problem occurred
 	var $tmpPath				= '/tmp';
-	
+
 	function __construct($tmpPath = '/tmp') {
 		$this->commands = array() ;
 		$this->tmpPath 	= $tmpPath ;
@@ -293,7 +293,7 @@ class TransactionFS {
 
 	/**
 	 * Transaction commit
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function commit() {
@@ -310,7 +310,7 @@ class TransactionFS {
 
 	/**
 	 * Transaction rollback
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function rollback() {
@@ -335,7 +335,7 @@ class TransactionFS {
 		}
 		$ret = fwrite(fopen($path, "wb"), $arrDati, strlen($arrDati)) ;
 		// Save the operation
-		$item = array("cmd"	=> "makeFile", "rollCmd" => "_rollMakeFile", 	
+		$item = array("cmd"	=> "makeFile", "rollCmd" => "_rollMakeFile",
 		  "params" => array("path" => $path)) ;
 		array_push($this->commands, $item);
 		return $path ;
@@ -354,7 +354,7 @@ class TransactionFS {
 			throw new BEditaIOException("Error in file copy $pathFileSource - $path");
 		}
 		// Save the operation
-		$item = array("cmd"	=> "makeFile", "rollCmd" => "_rollMakeFile", 
+		$item = array("cmd"	=> "makeFile", "rollCmd" => "_rollMakeFile",
 		  "params" => array("path" => $path)) ;
 		array_push($this->commands, $item);
 		return $path ;
@@ -382,7 +382,7 @@ class TransactionFS {
 			throw new BEditaIOException("Error opening/writing file $path");
 		}
 		// save the operation
-		$item = array("cmd"	=> "replaceFileData", "rollCmd" => "_rollReplaceFileData", 	
+		$item = array("cmd"	=> "replaceFileData", "rollCmd" => "_rollReplaceFileData",
 		  "params" => array("source" => $tmpfname, "dest" => $path)) ;
 		array_push($this->commands, $item);
 		return true ;
@@ -408,7 +408,7 @@ class TransactionFS {
 			throw new BEditaIOException("Error in unlink $path");
 		}
 		// Save the operation
-		$item = array("cmd"	=> "rmFile", "rollCmd" => "_rollRmFile", 	
+		$item = array("cmd"	=> "rmFile", "rollCmd" => "_rollRmFile",
 		  "params" => array("source" => $tmpfname, "dest" => $path)) ;
 		array_push($this->commands, $item);
 		return true ;
@@ -431,7 +431,7 @@ class TransactionFS {
 			throw new BEditaIOException("Error in unlink $pathSource");
 		}
 		// Save the operation
-		$item = array("cmd"	=> "mvFile", "rollCmd" => "_rollMvFile", 	
+		$item = array("cmd"	=> "mvFile", "rollCmd" => "_rollMvFile",
 		  "params" => array("source" => $newPath, "dest" => $pathSource)) ;
 		array_push($this->commands, $item);
 		return true ;
@@ -451,14 +451,14 @@ class TransactionFS {
 			throw new BEditaIOException("Error in file copy $pathSource - $newPath");
 		}
 		// Save the operation
-		$item = array("cmd"	=> "cpFile", "rollCmd" => "_rollCpFile", 	
+		$item = array("cmd"	=> "cpFile", "rollCmd" => "_rollCpFile",
 		  "params" => array("source" => $newPath)) ;
 		array_push($this->commands, $item);
 		return true ;
 	}
 
 	/**
-	 * 
+	 *
 	 * Change directory
 	 *
 	 * @param string $newDir
@@ -472,7 +472,7 @@ class TransactionFS {
 		}
 		$newDir = getcwd() ;
 		// Save the operation
-		$item = array("cmd"	=> "chdir", "rollCmd" => "_rollChdir", 	
+		$item = array("cmd"	=> "chdir", "rollCmd" => "_rollChdir",
 		  "params" => array("path" => $oldDir)) ;
 		array_push($this->commands, $item) ;
 		return true ;
@@ -500,7 +500,7 @@ class TransactionFS {
 		}
 		// Save the operation
 		$item = array("cmd"	=> "mkdir", "rollCmd" => "_rollMkdir", 	"params" => array("path" => $newDir)) ;
-		array_push($this->commands, $item); 
+		array_push($this->commands, $item);
 		return true ;
 	}
 
@@ -526,7 +526,7 @@ class TransactionFS {
 			throw new BEditaIOException("Error removing dir $rmDir");
 		}
 		// Save the operation
-		$item = array("cmd"	=> "rmdir", "rollCmd" => "_rollRmdir", 	
+		$item = array("cmd"	=> "rmdir", "rollCmd" => "_rollRmdir",
 		      "params" => array("path" => $rmDir, "perms" => $rmPerms)) ;
 		array_push($this->commands, $item);
 		return true ;
@@ -563,12 +563,12 @@ class TransactionFS {
 		$name = basename($oldPath) ;
 		if(substr($pathNewParent, -1) == "/") $newPath = "$oldParentPath"."$name" ;
 		else $newPath = "$oldParentPath/$name" ;
-		
+
 		// Save the operation
-		$item = array("cmd"	=> "mvDir", "rollCmd" => "_rollMvDir", 	
+		$item = array("cmd"	=> "mvDir", "rollCmd" => "_rollMvDir",
 		  "params" => array("path" => $newPath, "target" => $oldParentPath)) ;
 		array_push($this->commands, $item);
-		
+
 		return $newPath ;
 	}
 
@@ -580,7 +580,7 @@ class TransactionFS {
 		if(!unlink($path)) return false ;
 		return true ;
 	}
-	
+
 	private function _rollReplaceFileData($source, $dest) {
 		if(!copy($source, $dest)) return false ;
 		if(!unlink($source)) return false ;
@@ -592,7 +592,7 @@ class TransactionFS {
 		if(!unlink($source)) return false ;
 		return true ;
 	}
-	
+
 	private function _rollMvFile($source, $dest) {
 		if(!copy($source, $dest)) return false ;
 		if(!unlink($source)) return false ;

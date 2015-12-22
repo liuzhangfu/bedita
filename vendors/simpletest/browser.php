@@ -172,13 +172,13 @@
          *    @access public
          */
         function SimpleBrowser() {
-            $this->_user_agent = &$this->_createUserAgent();
+            $this->_user_agent = $this->_createUserAgent();
             $this->_user_agent->useProxy(
                     SimpleTest::getDefaultProxy(),
                     SimpleTest::getDefaultProxyUsername(),
                     SimpleTest::getDefaultProxyPassword());
-            $this->_page = &new SimplePage();
-            $this->_history = &$this->_createHistory();
+            $this->_page = new SimplePage();
+            $this->_history = $this->_createHistory();
             $this->_ignore_frames = false;
             $this->_maximum_nested_frames = DEFAULT_MAX_NESTED_FRAMES;
         }
@@ -189,7 +189,7 @@
          *    @access protected
          */
         function &_createUserAgent() {
-            $user_agent = &new SimpleUserAgent();
+            $user_agent = new SimpleUserAgent();
             return $user_agent;
         }
 
@@ -199,7 +199,7 @@
          *    @access protected
          */
         function &_createHistory() {
-            $history = &new SimpleBrowserHistory();
+            $history = new SimpleBrowserHistory();
             return $history;
         }
 
@@ -246,13 +246,13 @@
          *    @access private
          */
         function &_parse($response, $depth = 0) {
-            $page = &$this->_buildPage($response);
+            $page = $this->_buildPage($response);
             if ($this->_ignore_frames || ! $page->hasFrames() || ($depth > $this->_maximum_nested_frames)) {
                 return $page;
             }
-            $frameset = &new SimpleFrameset($page);
+            $frameset = new SimpleFrameset($page);
             foreach ($page->getFrameset() as $key => $url) {
-                $frame = &$this->_fetch($url, new SimpleGetEncoding(), $depth + 1);
+                $frame = $this->_fetch($url, new SimpleGetEncoding(), $depth + 1);
                 $frameset->addFrame($frame, $key);
             }
             return $frameset;
@@ -267,8 +267,8 @@
          *    @access protected
          */
         function &_buildPage($response) {
-            $builder = &new SimplePageBuilder();
-            $page = &$builder->parse($response);
+            $builder = new SimplePageBuilder();
+            $page = $builder->parse($response);
             $builder->free();
             unset($builder);
             return $page;
@@ -284,11 +284,11 @@
          *    @access private
          */
         function &_fetch($url, $encoding, $depth = 0) {
-            $response = &$this->_user_agent->fetchResponse($url, $encoding);
+            $response = $this->_user_agent->fetchResponse($url, $encoding);
             if ($response->isError()) {
-                $page = &new SimplePage($response);
+                $page = new SimplePage($response);
             } else {
-                $page = &$this->_parse($response, $depth);
+                $page = $this->_parse($response, $depth);
             }
             return $page;
         }
@@ -317,7 +317,7 @@
          *    @access private
          */
         function _loadPage($url, $parameters) {
-            $this->_page = &$this->_fetch($url, $parameters);
+            $this->_page = $this->_fetch($url, $parameters);
             $this->_history->recordEntry(
                     $this->_page->getUrl(),
                     $this->_page->getRequestData());
@@ -334,7 +334,7 @@
          *    @access private
          */
         function _loadFrame($frames, $url, $parameters) {
-            $page = &$this->_fetch($url, $parameters);
+            $page = $this->_fetch($url, $parameters);
             $this->_page->setFrame($frames, $page);
         }
 
@@ -466,7 +466,7 @@
             if ($this->getUrl()) {
                 $url = $url->makeAbsolute($this->getUrl());
             }
-            $response = &$this->_user_agent->fetchResponse($url, new SimpleHeadEncoding($parameters));
+            $response = $this->_user_agent->fetchResponse($url, new SimpleHeadEncoding($parameters));
             return ! $response->isError();
         }
 
@@ -523,7 +523,7 @@
                 return $this->_page->getRaw();
             }
             if ($url = $this->_history->getUrl()) {
-                $this->_page = &$this->_fetch($url, $this->_history->getParameters());
+                $this->_page = $this->_fetch($url, $this->_history->getParameters());
                 return $this->_page->getRaw();
             }
             return false;
@@ -850,7 +850,7 @@
          *    @access public
          */
         function clickSubmit($label = 'Submit', $additional = false) {
-            if (! ($form = &$this->_page->getFormBySubmit(new SimpleByLabel($label)))) {
+            if (! ($form = $this->_page->getFormBySubmit(new SimpleByLabel($label)))) {
                 return false;
             }
             $success = $this->_load(
@@ -868,7 +868,7 @@
          *    @access public
          */
         function clickSubmitByName($name, $additional = false) {
-            if (! ($form = &$this->_page->getFormBySubmit(new SimpleByName($name)))) {
+            if (! ($form = $this->_page->getFormBySubmit(new SimpleByName($name)))) {
                 return false;
             }
             $success = $this->_load(
@@ -886,7 +886,7 @@
          *    @access public
          */
         function clickSubmitById($id, $additional = false) {
-            if (! ($form = &$this->_page->getFormBySubmit(new SimpleById($id)))) {
+            if (! ($form = $this->_page->getFormBySubmit(new SimpleById($id)))) {
                 return false;
             }
             $success = $this->_load(
@@ -920,7 +920,7 @@
          *    @access public
          */
         function clickImage($label, $x = 1, $y = 1, $additional = false) {
-            if (! ($form = &$this->_page->getFormByImage(new SimpleByLabel($label)))) {
+            if (! ($form = $this->_page->getFormByImage(new SimpleByLabel($label)))) {
                 return false;
             }
             $success = $this->_load(
@@ -943,7 +943,7 @@
          *    @access public
          */
         function clickImageByName($name, $x = 1, $y = 1, $additional = false) {
-            if (! ($form = &$this->_page->getFormByImage(new SimpleByName($name)))) {
+            if (! ($form = $this->_page->getFormByImage(new SimpleByName($name)))) {
                 return false;
             }
             $success = $this->_load(
@@ -965,7 +965,7 @@
          *    @access public
          */
         function clickImageById($id, $x = 1, $y = 1, $additional = false) {
-            if (! ($form = &$this->_page->getFormByImage(new SimpleById($id)))) {
+            if (! ($form = $this->_page->getFormByImage(new SimpleById($id)))) {
                 return false;
             }
             $success = $this->_load(
@@ -993,7 +993,7 @@
          *    @access public
          */
         function submitFormById($id) {
-            if (! ($form = &$this->_page->getFormById($id))) {
+            if (! ($form = $this->_page->getFormById($id))) {
                 return false;
             }
             $success = $this->_load(

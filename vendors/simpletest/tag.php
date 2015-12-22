@@ -692,7 +692,7 @@
          */
         function addTag(&$tag) {
             if ($tag->getTagName() == 'option') {
-                $this->_options[] = &$tag;
+                $this->_options[] = $tag;
             }
         }
         
@@ -779,7 +779,7 @@
          */
         function addTag(&$tag) {
             if ($tag->getTagName() == 'option') {
-                $this->_options[] = &$tag;
+                $this->_options[] = $tag;
             }
         }
         
@@ -1043,7 +1043,7 @@
          *    @access public
          */
         function addWidget(&$widget) {
-            $this->_widgets[] = &$widget;
+            $this->_widgets[] = $widget;
         }
         
         /**
@@ -1134,7 +1134,7 @@
          */
         function getValue() {
             $values = array();
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if ($widgets[$i]->getValue() !== false) {
                     $values[] = $widgets[$i]->getValue();
@@ -1150,7 +1150,7 @@
          */
         function getDefault() {
             $values = array();
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if ($widgets[$i]->getDefault() !== false) {
                     $values[] = $widgets[$i]->getDefault();
@@ -1171,7 +1171,7 @@
             if (! $this->_valuesArePossible($values)) {
                 return false;
             }
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 $possible = $widgets[$i]->getAttribute('value');
                 if (in_array($widgets[$i]->getAttribute('value'), $values)) {
@@ -1193,7 +1193,7 @@
          */
         function _valuesArePossible($values) {
             $matches = array();
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 $possible = $widgets[$i]->getAttribute('value');
                 if (in_array($possible, $values)) {
@@ -1262,7 +1262,7 @@
                 return false;
             }
             $index = false;
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if (! $widgets[$i]->setValue($value)) {
                     $widgets[$i]->setValue(false);
@@ -1278,7 +1278,7 @@
          *    @access private
          */
         function _valueIsPossible($value) {
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if ($widgets[$i]->getAttribute('value') == $value) {
                     return true;
@@ -1295,7 +1295,7 @@
          *    @access public
          */
         function getValue() {
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if ($widgets[$i]->getValue() !== false) {
                     return $widgets[$i]->getValue();
@@ -1311,7 +1311,7 @@
          *    @access public
          */
         function getDefault() {
-            $widgets = &$this->_getWidgets();
+            $widgets = $this->_getWidgets();
             for ($i = 0, $count = count($widgets); $i < $count; $i++) {
                 if ($widgets[$i]->getDefault() !== false) {
                     return $widgets[$i]->getDefault();

@@ -1,21 +1,21 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2008-2015 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
@@ -47,7 +47,7 @@ class ModuleShell extends BeditaBaseShell {
             )
         ));
         $pluginPaths = App::path('plugins');
-        
+
         if (empty($plugin)) {
             $plugin = $this->mandatoryArgument('name', 'use -name option');
         }
@@ -201,7 +201,7 @@ class ModuleShell extends BeditaBaseShell {
             return;
         }
         $newStatus = ($status == 'on') ? 'off' : 'on';
-        $confirm = $this->in('Changing "' . $name . '" status from "' . 
+        $confirm = $this->in('Changing "' . $name . '" status from "' .
             $status . '" to "' . $newStatus . '" confirm? [y/n]' );
         if (empty($confirm) || strtolower($confirm) !== 'y') {
             $this->out('Module status unchanged');
@@ -221,11 +221,11 @@ class ModuleShell extends BeditaBaseShell {
 			$res = $pluginPaths;
 		}
 		return $res;
-	}	
+	}
 
 
 	public function schema() {
-		
+
 		$pluginPath = $this->findPluginPath($pluginName);
 		if($pluginPath == null) {
 			$this->out("Plugin $pluginName not found");
@@ -244,26 +244,26 @@ class ModuleShell extends BeditaBaseShell {
 			return;
 		}
 
-		$db =& ConnectionManager::getDataSource("default");
+		$db = ConnectionManager::getDataSource("default");
 		$options = array();
 		$tables = $moduleSetup["tables"];
 		$beSchema = ClassRegistry::init("BeSchema");
 		$conf = Configure::getInstance();
-		
+
 		$modelPaths = App::path('models');
 		if (!in_array($pluginPath . DS . "model" . DS, $modelPaths)){
 			App::build(array("models" => $pluginPath . DS . "model" . DS));
 		}
-		
+
 		foreach ($tables as $t) {
 			$modelName = Inflector::camelize($t);
 			$model = ClassRegistry::init($modelName);
 			$options["tables"][$t] = $beSchema->tableMetadata($model, $db);
 			ClassRegistry::removeObject($modelName);
 		}
-		
+
 		$schemaFile = $configPath . "sql". DS . "schema.php";
-		$skip = false;		
+		$skip = false;
 		if(file_exists($schemaFile)) {
 			$command = $this->in("Schema file $schemaFile exists. Overwrite?", array("y", "n"), "y");
 			if ($command == "n") {
@@ -271,8 +271,8 @@ class ModuleShell extends BeditaBaseShell {
 				$this->out("Skipping schema file generation");
 			}
 		}
-		
-		if(!$skip) {		
+
+		if(!$skip) {
 			$this->out("Creating schema file: $schemaFile");
 			$name = Inflector::camelize($pluginName);
 			$options['name'] = $name;
@@ -286,7 +286,7 @@ class ModuleShell extends BeditaBaseShell {
 
 		// sql schema
 		$sqlSchema = $configPath . "sql". DS . $db->config["driver"] . "_schema.sql";
-		$skip = false;		
+		$skip = false;
 		if(file_exists($sqlSchema)) {
 			$command = $this->in("Schema file $sqlSchema exists. Overwrite?", array("y", "n"), "y");
 			if ($command == "n") {
@@ -294,9 +294,9 @@ class ModuleShell extends BeditaBaseShell {
 				$this->out("Skipping schema file generation");
 			}
 		}
-		
-		if(!$skip) {		
-			$this->out("Creating schema file: $sqlSchema");		
+
+		if(!$skip) {
+			$this->out("Creating schema file: $sqlSchema");
 			$contents = "#" . $schema->name . " sql generated on: " . date('Y-m-d H:i:s') . " : " . time() . "\n\n";
 			$contents .= $db->dropSchema($schema) . "\n\n". $db->createSchema($schema);
 			$file = new File($sqlSchema, true);

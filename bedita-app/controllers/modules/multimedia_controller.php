@@ -103,7 +103,7 @@ class MultimediaController extends ModulesController {
             "contain" => array()
         ));
 
-        $this->params['toolbar'] = &$bedita_items['toolbar'] ;
+        $this->params['toolbar'] = $bedita_items['toolbar'] ;
 
         // get publications
         $user = $this->BeAuth->getUserSession();

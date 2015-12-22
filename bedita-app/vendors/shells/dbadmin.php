@@ -78,7 +78,7 @@ class DbadminShell extends BeditaBaseShell {
             }
             $options['type'] = $objTypeId;
         }
-        
+
 		if (!empty($this->params['delete'])) {
 		    $options['delete'] = true;
 		}
@@ -553,7 +553,7 @@ class DbadminShell extends BeditaBaseShell {
 		$options = array('attributes' => false, 'format' => 'attributes', 'header' => false);
 		$out["Bedita"]["Objects"] = $res;
 		App::import("Core", "Xml");
-		$xml =& new Xml($out, $options);
+		$xml = new Xml($out, $options);
 		$xmlOut = $xml->toString();
 		file_put_contents($this->params['o'], $xmlOut);
 		$this->out("Done.");

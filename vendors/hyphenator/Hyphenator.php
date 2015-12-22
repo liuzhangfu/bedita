@@ -539,8 +539,8 @@ class Hyphenator {
         $row = 0;
         $link = 0;
         $value = 0;
-        $indexedTrie = &$lo->indexedTrie;
-        $valueStore = &$lo->valueStore->keys;
+        $indexedTrie = $lo->indexedTrie;
+        $valueStore = $lo->valueStore->keys;
 
         $char = html_entity_decode($this->hyphen, ENT_NOQUOTES, 'UTF-8');
 

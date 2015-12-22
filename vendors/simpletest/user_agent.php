@@ -45,8 +45,8 @@
          *    @access public
          */
         function SimpleUserAgent() {
-            $this->_cookie_jar = &new SimpleCookieJar();
-            $this->_authenticator = &new SimpleAuthenticator();
+            $this->_cookie_jar = new SimpleCookieJar();
+            $this->_authenticator = new SimpleAuthenticator();
         }
         
         /**
@@ -177,7 +177,7 @@
             if ((strncmp($proxy, 'http://', 7) != 0) && (strncmp($proxy, 'https://', 8) != 0)) {
                 $proxy = 'http://'. $proxy;
             }
-            $this->_proxy = &new SimpleUrl($proxy);
+            $this->_proxy = new SimpleUrl($proxy);
             $this->_proxy_username = $username;
             $this->_proxy_password = $password;
         }
@@ -217,7 +217,7 @@
                 $url->addRequestParameters($encoding);
                 $encoding->clear();
             }
-            $response = &$this->_fetchWhileRedirected($url, $encoding);
+            $response = $this->_fetchWhileRedirected($url, $encoding);
             if ($headers = $response->getHeaders()) {
                 if ($headers->isChallenge()) {
                     $this->_authenticator->addRealm(
@@ -240,7 +240,7 @@
         function &_fetchWhileRedirected($url, $encoding) {
             $redirects = 0;
             do {
-                $response = &$this->_fetch($url, $encoding);
+                $response = $this->_fetch($url, $encoding);
                 if ($response->isError()) {
                     return $response;
                 }
@@ -266,8 +266,8 @@
          *    @access protected
          */
         function &_fetch($url, $encoding) {
-            $request = &$this->_createRequest($url, $encoding);
-            $response = &$request->fetch($this->_connection_timeout);
+            $request = $this->_createRequest($url, $encoding);
+            $response = $request->fetch($this->_connection_timeout);
             return $response;
         }
         
@@ -279,7 +279,7 @@
          *    @access private
          */
         function &_createRequest($url, $encoding) {
-            $request = &$this->_createHttpRequest($url, $encoding);
+            $request = $this->_createHttpRequest($url, $encoding);
             $this->_addAdditionalHeaders($request);
             if ($this->_cookies_enabled) {
                 $request->readCookiesFromJar($this->_cookie_jar, $url);
@@ -296,7 +296,7 @@
          *    @access protected
          */
         function &_createHttpRequest($url, $encoding) {
-            $request = &new SimpleHttpRequest($this->_createRoute($url), $encoding);
+            $request = new SimpleHttpRequest($this->_createRoute($url), $encoding);
             return $request;
         }
         
@@ -308,13 +308,13 @@
          */
         function &_createRoute($url) {
             if ($this->_proxy) {
-                $route = &new SimpleProxyRoute(
+                $route = new SimpleProxyRoute(
                         $url,
                         $this->_proxy,
                         $this->_proxy_username,
                         $this->_proxy_password);
             } else {
-                $route = &new SimpleRoute($url);
+                $route = new SimpleRoute($url);
             }
             return $route;
         }

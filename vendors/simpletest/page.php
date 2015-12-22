@@ -149,8 +149,8 @@
          */
         function &parse($response) {
             $this->_tags = array();
-            $this->_page = &$this->_createPage($response);
-            $parser = &$this->_createParser($this);
+            $this->_page = $this->_createPage($response);
+            $parser = $this->_createParser($this);
             $parser->parse($response->getContent());
             $this->_page->acceptPageEnd();
             return $this->_page;
@@ -162,7 +162,7 @@
          *    @access protected
          */
         function &_createPage($response) {
-            $page = &new SimplePage($response);
+            $page = new SimplePage($response);
             return $page;
         }
 
@@ -174,7 +174,7 @@
          *    @access protected
          */
         function &_createParser(&$listener) {
-            $parser = &new SimpleHtmlSaxParser($listener);
+            $parser = new SimpleHtmlSaxParser($listener);
             return $parser;
         }
         
@@ -187,7 +187,7 @@
          *    @access public
          */
         function startElement($name, $attributes) {
-            $factory = &new SimpleTagBuilder();
+            $factory = new SimpleTagBuilder();
             $tag = $factory->createTag($name, $attributes);
             if (! $tag) {
                 return true;
@@ -210,7 +210,7 @@
                 return true;
             }
             if ($tag->isPrivateContent() && ! isset($this->_private_content_tag)) {
-                $this->_private_content_tag = &$tag;
+                $this->_private_content_tag = $tag;
             }
             if ($tag->expectEndTag()) {
                 $this->_openTag($tag);
@@ -321,7 +321,7 @@
             if (! in_array($name, array_keys($this->_tags))) {
                 $this->_tags[$name] = array();
             }
-            $this->_tags[$name][] = &$tag;
+            $this->_tags[$name][] = $tag;
         }
     }
 
@@ -581,7 +581,7 @@
                 for ($i = 0; $i < count($this->_open_forms); $i++) {
                     $this->_open_forms[$i]->addWidget($tag);
                 }
-                $this->_last_widget = &$tag;
+                $this->_last_widget = $tag;
             }
         }
 
@@ -591,7 +591,7 @@
          *    @access public
          */
         function acceptLabelStart(&$tag) {
-            $this->_label = &$tag;
+            $this->_label = $tag;
             unset($this->_last_widget);
         }
 
@@ -628,7 +628,7 @@
          *    @access public
          */
         function acceptFormStart(&$tag) {
-            $this->_open_forms[] = &new SimpleForm($tag, $this->getUrl());
+            $this->_open_forms[] = new SimpleForm($tag, $this->getUrl());
         }
 
         /**
@@ -649,7 +649,7 @@
          */
         function acceptFramesetStart(&$tag) {
             if (! $this->_isLoadingFrames()) {
-                $this->_frameset = &$tag;
+                $this->_frameset = $tag;
             }
             $this->_frameset_nesting_level++;
         }
@@ -673,7 +673,7 @@
         function acceptFrame(&$tag) {
             if ($this->_isLoadingFrames()) {
                 if ($tag->getAttribute('src')) {
-                    $this->_frames[] = &$tag;
+                    $this->_frames[] = $tag;
                 }
             }
         }
@@ -867,7 +867,7 @@
          *    @access protected
          */
         function _setTitle(&$tag) {
-            $this->_title = &$tag;
+            $this->_title = $tag;
         }
 
         /**

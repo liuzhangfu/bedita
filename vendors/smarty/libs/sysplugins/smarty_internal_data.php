@@ -101,7 +101,7 @@ class Smarty_Internal_Data
     {
         if ($tpl_var != '') {
             $this->tpl_vars[$tpl_var] = new Smarty_variable(null, $nocache);
-            $this->tpl_vars[$tpl_var]->value = &$value;
+            $this->tpl_vars[$tpl_var]->value = $value;
         }
 
         return $this;
@@ -187,10 +187,10 @@ class Smarty_Internal_Data
             }
             if ($merge && is_array($value)) {
                 foreach ($value as $_key => $_val) {
-                    $this->tpl_vars[$tpl_var]->value[$_key] = &$value[$_key];
+                    $this->tpl_vars[$tpl_var]->value[$_key] = $value[$_key];
                 }
             } else {
-                $this->tpl_vars[$tpl_var]->value[] = &$value;
+                $this->tpl_vars[$tpl_var]->value[] = $value;
             }
         }
 

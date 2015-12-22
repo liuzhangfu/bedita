@@ -12,15 +12,15 @@
 
 function smarty_function_formHelper($params, &$smarty)
 {
-	extract($params);
-	
+    extract($params);
+    
     if (@empty($fnc)) {
         throw new SmartyException("function_formHelper: missing 'fnc' argument");
     }
     if (@empty($args)) $args = "" ;
-	$vs = &$smarty->getTemplateVars() ;
-	$form = &$vs["form"] ;
-	
-	eval("echo \$form->$fnc($args);") ;
+    $vs = $smarty->getTemplateVars() ;
+    $form = $vs["form"] ;
+    
+    eval("echo \$form->$fnc($args);") ;
 }
 ?>

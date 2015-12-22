@@ -74,7 +74,7 @@
          */
         function &createConnection($method, $timeout) {
             $default_port = ('https' == $this->_url->getScheme()) ? 443 : 80;
-            $socket = &$this->_createSocket(
+            $socket = $this->_createSocket(
                     $this->_url->getScheme() ? $this->_url->getScheme() : 'http',
                     $this->_url->getHost(),
                     $this->_url->getPort() ? $this->_url->getPort() : $default_port,
@@ -98,9 +98,9 @@
          */
         function &_createSocket($scheme, $host, $port, $timeout) {
             if (in_array($scheme, array('https'))) {
-                $socket = &new SimpleSecureSocket($host, $port, $timeout);
+                $socket = new SimpleSecureSocket($host, $port, $timeout);
             } else {
-                $socket = &new SimpleSocket($host, $port, $timeout);
+                $socket = new SimpleSocket($host, $port, $timeout);
             }
             return $socket;
         }
@@ -167,7 +167,7 @@
          *    @access public
          */
         function &createConnection($method, $timeout) {
-            $socket = &$this->_createSocket(
+            $socket = $this->_createSocket(
                     $this->_proxy->getScheme() ? $this->_proxy->getScheme() : 'http',
                     $this->_proxy->getHost(),
                     $this->_proxy->getPort() ? $this->_proxy->getPort() : 8080,
@@ -209,7 +209,7 @@
          *    @access public
          */
         function SimpleHttpRequest(&$route, $encoding) {
-            $this->_route = &$route;
+            $this->_route = $route;
             $this->_encoding = $encoding;
             $this->_headers = array();
             $this->_cookies = array();
@@ -224,11 +224,11 @@
          *    @access public
          */
         function &fetch($timeout) {
-            $socket = &$this->_route->createConnection($this->_encoding->getMethod(), $timeout);
+            $socket = $this->_route->createConnection($this->_encoding->getMethod(), $timeout);
             if (! $socket->isError()) {
                 $this->_dispatchRequest($socket, $this->_encoding);
             }
-            $response = &$this->_createResponse($socket);
+            $response = $this->_createResponse($socket);
             return $response;
         }
         
@@ -279,7 +279,7 @@
          *    @access protected
          */
         function &_createResponse(&$socket) {
-            $response = &new SimpleHttpResponse(
+            $response = new SimpleHttpResponse(
                     $socket,
                     $this->_route->getUrl(),
                     $this->_encoding);
@@ -516,13 +516,13 @@
         function _parse($raw) {
             if (! $raw) {
                 $this->_setError('Nothing fetched');
-                $this->_headers = &new SimpleHttpHeaders('');
+                $this->_headers = new SimpleHttpHeaders('');
             } elseif (! strstr($raw, "\r\n\r\n")) {
                 $this->_setError('Could not split headers from content');
-                $this->_headers = &new SimpleHttpHeaders($raw);
+                $this->_headers = new SimpleHttpHeaders($raw);
             } else {
                 list($headers, $this->_content) = split("\r\n\r\n", $raw, 2);
-                $this->_headers = &new SimpleHttpHeaders($headers);
+                $this->_headers = new SimpleHttpHeaders($headers);
             }
         }
         

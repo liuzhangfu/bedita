@@ -63,7 +63,7 @@ class BeSecurityComponent extends Object {
      * @return void
      */
     public function initialize($controller, $settings = array()) {
-        $this->controller = &$controller;
+        $this->controller = $controller;
         $this->_set($settings);
     }
 

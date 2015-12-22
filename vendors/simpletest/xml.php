@@ -486,8 +486,8 @@
          *    @access public
          */
         function SimpleTestXmlParser(&$listener) {
-            $this->_listener = &$listener;
-            $this->_expat = &$this->_createParser();
+            $this->_listener = $listener;
+            $this->_expat = $this->_createParser();
             $this->_tag_stack = array();
             $this->_in_content_tag = false;
             $this->_content = '';
@@ -600,7 +600,7 @@
                 $nesting_tag = $this->_popNestingTag();
                 $nesting_tag->paintEnd($this->_listener);
             } elseif ($tag == 'NAME') {
-                $nesting_tag = &$this->_getCurrentNestingTag();
+                $nesting_tag = $this->_getCurrentNestingTag();
                 $nesting_tag->setName($this->_content);
                 $nesting_tag->paintStart($this->_listener);
             } elseif ($tag == 'PASS') {

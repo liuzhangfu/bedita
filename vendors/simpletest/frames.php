@@ -33,7 +33,7 @@
          *    @param SimplePage $page        Frameset page.
          */
         function SimpleFrameset(&$page) {
-            $this->_frameset = &$page;
+            $this->_frameset = $page;
             $this->_frames = array();
             $this->_focus = false;
             $this->_names = array();
@@ -46,7 +46,7 @@
          *    @access public
          */
         function addFrame(&$page, $name = false) {
-            $this->_frames[] = &$page;
+            $this->_frames[] = $page;
             if ($name) {
                 $this->_names[$name] = count($this->_frames) - 1;
             }
@@ -68,7 +68,7 @@
                 $index = $name - 1;
             }
             if (count($path) == 0) {
-                $this->_frames[$index] = &$page;
+                $this->_frames[$index] = $page;
                 return;
             }
             $this->_frames[$index]->setFrame($path, $page);
@@ -466,7 +466,7 @@
          *    @access public
          */
         function &getFormBySubmit($selector) {
-            $form = &$this->_findForm('getFormBySubmit', $selector);
+            $form = $this->_findForm('getFormBySubmit', $selector);
             return $form;
         }
 
@@ -481,7 +481,7 @@
          *    @access public
          */
         function &getFormByImage($selector) {
-            $form = &$this->_findForm('getFormByImage', $selector);
+            $form = $this->_findForm('getFormByImage', $selector);
             return $form;
         }
 
@@ -496,7 +496,7 @@
          *    @access public
          */
         function &getFormById($id) {
-            $form = &$this->_findForm('getFormById', $id);
+            $form = $this->_findForm('getFormById', $id);
             return $form;
         }
 
@@ -510,7 +510,7 @@
          */
         function &_findForm($method, $attribute) {
             if (is_integer($this->_focus)) {
-                $form = &$this->_findFormInFrame(
+                $form = $this->_findFormInFrame(
                         $this->_frames[$this->_focus],
                         $this->_focus,
                         $method,
@@ -518,7 +518,7 @@
                 return $form;
             }
             for ($i = 0; $i < count($this->_frames); $i++) {
-                $form = &$this->_findFormInFrame(
+                $form = $this->_findFormInFrame(
                         $this->_frames[$i],
                         $i,
                         $method,
@@ -542,7 +542,7 @@
          *    @access private
          */
         function &_findFormInFrame(&$page, $index, $method, $attribute) {
-            $form = &$this->_frames[$index]->$method($attribute);
+            $form = $this->_frames[$index]->$method($attribute);
             if (isset($form)) {
                 $form->setDefaultTarget($this->_getPublicNameFromIndex($index));
             }

@@ -12,17 +12,17 @@
 
 function smarty_function_javascriptHelper($params, &$smarty)
 {
-	extract($params);
-	
+    extract($params);
+    
     if (@empty($fnc)) {
         throw new SmartyException("function_JavascriptHelper: missing 'fnc' argument");
     }
     if (@empty($args)) $args = "" ;
-	
-	$vs = &$smarty->getTemplateVars() ;
+    
+    $vs = $smarty->getTemplateVars() ;
 
-	$js = &$vs["javascript"] ;
-	
-	eval("echo \$js->$fnc(\"$args\");") ;
+    $js = $vs["javascript"] ;
+    
+    eval("echo \$js->$fnc(\"$args\");") ;
 }
 ?>

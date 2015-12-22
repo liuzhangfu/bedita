@@ -80,7 +80,7 @@ class ResponseHandlerComponent extends Object {
      * @return void
      */
     public function initialize($controller, $settings = array()) {
-        $this->controller = &$controller;
+        $this->controller = $controller;
         $this->_set($settings);
         if ($this->RequestHandler->isAjax()) {
            $this->controller->layout = 'ajax';

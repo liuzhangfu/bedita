@@ -1,51 +1,51 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2008 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
 /**
  * Component for low level operations
- * 
+ *
  *  - importing/exporting bedita data: database, media.
  *  - system information
  *  - .....
- * 
+ *
  *
  * @version			$Revision$
  * @modifiedby 		$LastChangedBy$
  * @lastmodified	$LastChangedDate$
- * 
+ *
  * $Id$
  */
  class BeSystemComponent extends Object {
-	
+
 	//var $uses = array('BEObject', 'Stream');
 	//var $components = array('Transaction');
-	
+
 	private $basepath;
-	
+
 	function __construct() {
 	}
 
 	/**
 	 * info for mysql connection
-	 * 
+	 *
 	 * @param array $db
 	 * @param array $res
 	 */
@@ -59,12 +59,12 @@
 
 	/**
 	 * info for postgres connection
-	 * 
+	 *
 	 * @param array $db
 	 * @param array $res
 	 */
 	private function postgresInfo($db, array& $res) {
-		$connStr = "host=" .$db->config['host'] . " dbname=" . $db->config['database'] . 
+		$connStr = "host=" .$db->config['host'] . " dbname=" . $db->config['database'] .
 			" user=" . $db->config['login'] . " password=" . $db->config['password'];
 		if(!empty($db->config['port'])) {
 			$connStr .= " port=" . $db->config['port'];
@@ -79,7 +79,7 @@
 
 	/**
 	 * info for system (i.e. database data, os version, php version, etc.)
-	 * 
+	 *
 	 * @return array
 	 */
 	public function systemInfo() {
@@ -101,7 +101,7 @@
 
 	/**
 	 * get system logs for backend
-	 * 
+	 *
 	 * @param int $maxRows
 	 * @return array
 	 */
@@ -116,7 +116,7 @@
 
 	/**
 	 * get system logs for frontends
-	 * 
+	 *
 	 * @param int $maxRows
 	 * @return array
 	 */
@@ -131,7 +131,7 @@
 
 	/**
 	 * get system logs
-	 * 
+	 *
 	 * @param int $maxRows
 	 * @return array
 	 */
@@ -143,7 +143,7 @@
 
 	/**
 	 * open for write or create a file
-	 * 
+	 *
 	 * @param string $fileName
 	 * @throws SocException
 	 */
@@ -157,7 +157,7 @@
 
 	/**
 	 * check whether file is readable
-	 * 
+	 *
 	 * @param string $fileName
 	 */
 	public function isFileReadable($fileName) {
@@ -171,7 +171,7 @@
 
 	/**
 	 * get backend log files for BEdita
-	 * 
+	 *
 	 * @return array
 	 */
 	public function backendLogFiles() {
@@ -191,7 +191,7 @@
 
 	/**
 	 * get frontend log files for BEdita
-	 * 
+	 *
 	 * @return array
 	 */
 	public function frontendLogFiles() {
@@ -222,7 +222,7 @@
 
 	/**
 	 * get log files for BEdita and frontends (if BEDITA_FRONTENDS_PATH is set)
-	 * 
+	 *
 	 * @return array
 	 */
 	public function logFiles() {
@@ -233,7 +233,7 @@
 
 	/**
 	 * read tail of log file
-	 * 
+	 *
 	 * @param string $fileName
 	 * @param int $limit
 	 * @return string
@@ -250,7 +250,7 @@
 
 	/**
 	 * Tail of file
-	 * 
+	 *
 	 * @param array $fp handle
 	 * @param int $limit max lines to log
 	 * @return array
@@ -268,38 +268,38 @@
 		return $lines;
 	}
 
-/*	
+/*
 	public function update($sqlDataFile=null,$media=null) {
 	}
 
 	public function import($exportFile) {
 	}
-	
+
 	public function export() {
-		
+
 		$this->$basepath = $this->setupTempDir();
 
 		// step 1 - save db data to sql file
 		$sqlFileName = $this->basepath."bedita-data.sql";
 		$this->saveDump($sqlFileName);
-		
+
 		// step 2 - save MEDIA_ROOT to export folder
 		$this->copyFolder(MEDIA_ROOT,$this->basepath.'media');
-		
+
 		// step 3 - compress export folder
 		$this->compressFolder($this->basepath);
 	}
-	
+
 	function saveDump($sqlFileName) {
 		$dbDump = new DbDump();
 		$tables = $dbDump->tableList();
 		$handle = fopen($sqlFileName, "w");
-		if($handle === FALSE) 
+		if($handle === FALSE)
 			throw new Exception("Error opening file: ".$sqlFileName);
 		$dbDump->tableDetails($tables, $handle);
 		fclose($handle);
 	}
-	
+
 	function extractFile($file,$destPath) {
 		$zipFile = self::DEFAULT_ZIP_FILE;
     	if (isset($file)) {
@@ -313,11 +313,11 @@
 			throw new Exception("Error extracting file: ".$zipFile);
 		}
 	}
-	
+
 	function compressFolder($folderPath,$expFile) {
 		$zip = new ZipArchive;
 		$res = $zip->open($expFile, ZIPARCHIVE::CREATE);
-		$folder=& new Folder($folderPath);
+		$folder= new Folder($folderPath);
         $tree= $folder->tree($folderPath, false);
         foreach ($tree as $files) {
             foreach ($files as $file) {
@@ -336,14 +336,14 @@
         }
 		$zip->close();
 	}
-	
+
 	function executeScript($script) {
-		$db =& ConnectionManager::getDataSource('default');
+		$db = ConnectionManager::getDataSource('default');
 		$sql = file_get_contents($script);
 		$queries = array();
 		$SplitterSql = new SplitterSql() ;
 		$SplitterSql->parse($queries, $sql) ;
-		foreach($queries as $q) {	
+		foreach($queries as $q) {
 			if(strlen($q)>1) {
 				$res = $db->execute($q);
 				if($res === false) {
@@ -352,11 +352,11 @@
 			}
 		}
 	}
-	
+
 	function executeInsert($sqlFileName) {
-		$db =& ConnectionManager::getDataSource('default');
+		$db = ConnectionManager::getDataSource('default');
 		$handle = fopen($sqlFileName, "r");
-		if($handle === FALSE) 
+		if($handle === FALSE)
 			throw new Exception("Error opening file: ".$sqlFileName);
 		$q = "";
 		while(!feof($handle)) {
@@ -383,7 +383,7 @@
 			}
 		}
 	}
-	
+
 	function copyFolder($from,$to) {
 		$folder = new Folder($to);
 		$ls = $folder->read();
@@ -404,7 +404,7 @@
 		}
     	return $basePath;
     }
-	
+
     private function removeMediaFiles() {
        $this->__clean(MEDIA_ROOT . DS. 'imgcache');
        $folder= new Folder(MEDIA_ROOT);
@@ -413,11 +413,11 @@
        	    if($d !== 'imgcache') {
        	    	$folder->delete(MEDIA_ROOT . DS. $d);
        	    }
-       }  	
+       }
     }
-	
+
     private function __clean($path) {
-        $folder=& new Folder($path);
+        $folder= new Folder($path);
         $list = $folder->read();
         foreach ($list[0] as $d) {
         	if($d[0] != '.') { // don't delete hidden dirs (.svn,...)
@@ -434,17 +434,17 @@
         }
         return ;
     }
-	
+
 	public function checkMedia() {
 		$stream = new Stream();
         // check filesystem
-		$folder=& new Folder(MEDIA_ROOT);
+		$folder= new Folder(MEDIA_ROOT);
         $tree= $folder->tree(MEDIA_ROOT, false);
 		$mediaOk = true;
         foreach ($tree as $files) {
             foreach ($files as $file) {
                 if (!is_dir($file)) {
-                    $file=& new File($file);
+                    $file= new File($file);
 					$p = substr($file->pwd(), strlen(MEDIA_ROOT));
 					if(stripos($p, "/imgcache/") !== 0) {
 						$f = $stream->findByPath($p);
@@ -472,13 +472,13 @@ class DumpModel extends AppModel {
 }
 
 class DbDump {
-	
+
 	private $model = NULL;
-	
+
 	public function __construct() {
 		$this->model = new DumpModel();
 	}
-	
+
 	public function tableList() {
    		$tables = $this->model->execute("show tables");
     	$res = array();
@@ -490,11 +490,11 @@ class DbDump {
     	}
     	return $res;
     }
-    
+
     public function tableDetails($tables, $handle) {
     	fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
     	foreach ($tables as $t) {
-    		$this->model->setSource($t); 
+    		$this->model->setSource($t);
     		$select = $this->model->find('all');
 			foreach ($select as $sel) {
 				$fields = "";
@@ -507,8 +507,8 @@ class DbDump {
 					}
 					$fields .= "`$k`";
 					if($v == NULL)
-						$values .= "NULL";					
-					else 
+						$values .= "NULL";
+					else
 						$values .= "'".addslashes($v)."'";
 					$count++;
 				}

@@ -241,7 +241,7 @@ class VCardProperty
      */
     function _decodeQuotedPrintable(&$lines)
     {
-        $value = &$this->value;
+        $value = $this->value;
         while ($value[strlen($value) - 1] == "=") {
             $value = substr($value, 0, strlen($value) - 1);
             if (!(list(, $line) = each($lines))) {

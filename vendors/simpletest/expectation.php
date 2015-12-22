@@ -118,7 +118,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return 'Anything always matches [' . $dumper->describeValue($compare) . ']';
         }
     }
@@ -148,7 +148,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return 'Expected true, got [' . $dumper->describeValue($compare) . ']';
         }
     }
@@ -178,7 +178,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return 'Expected false, got [' . $dumper->describeValue($compare) . ']';
         }
     }
@@ -275,7 +275,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             if ($this->test($compare)) {
                 return "Not equal expectation passes " .
                         $dumper->describeDifference($this->_getValue(), $compare);
@@ -444,7 +444,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             if ($this->test($compare)) {
                 return "Identical expectation [" . $dumper->describeValue($this->_getValue()) . "]";
             } else {
@@ -492,7 +492,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             if ($this->test($compare)) {
                 return "Not identical expectation passes " .
                         $dumper->describeDifference($this->_getValue(), $compare, TYPE_MATTERS);
@@ -552,7 +552,7 @@
             if ($this->test($compare)) {
                 return $this->_describePatternMatch($this->_getPattern(), $compare);
             } else {
-                $dumper = &$this->_getDumper();
+                $dumper = $this->_getDumper();
                 return "Pattern [" . $this->_getPattern() .
                         "] not detected in [" .
                         $dumper->describeValue($compare) . "]";
@@ -623,7 +623,7 @@
          */
         function testMessage($compare) {
             if ($this->test($compare)) {
-                $dumper = &$this->_getDumper();
+                $dumper = $this->_getDumper();
                 return "Pattern [" . $this->_getPattern() .
                         "] not detected in [" .
                         $dumper->describeValue($compare) . "]";
@@ -711,7 +711,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return "Value [" . $dumper->describeValue($compare) .
                     "] should be type [" . $this->_type . "]";
         }
@@ -755,7 +755,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             return "Value [" . $dumper->describeValue($compare) .
                     "] should not be type [" . $this->_getType() . "]";
         }
@@ -778,7 +778,7 @@
          */
         function MethodExistsExpectation($method, $message = '%s') {
             $this->SimpleExpectation($message);
-            $this->_method = &$method;
+            $this->_method = $method;
         }
         
         /**
@@ -799,7 +799,7 @@
          *    @access public
          */
         function testMessage($compare) {
-            $dumper = &$this->_getDumper();
+            $dumper = $this->_getDumper();
             if (! is_object($compare)) {
                 return 'No method on non-object [' . $dumper->describeValue($compare) . ']';
             }

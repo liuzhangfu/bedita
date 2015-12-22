@@ -13,18 +13,18 @@
  */
 function smarty_function_dump($params, &$smarty)
 {
-	$vars = &$smarty->getTemplateVars();
-	if (isset($params["var"])) {
-		$vars = &$params["var"] ;
-	}
-	
-	echo html_entity_decode("<pre>");
-	ob_start();
-	print_r($vars);
-	$_output = ob_get_contents(); 
-	ob_end_clean();
-	echo htmlentities($_output);
-	echo html_entity_decode("</pre>");
+    $vars = $smarty->getTemplateVars();
+    if (isset($params["var"])) {
+        $vars = $params["var"] ;
+    }
+    
+    echo html_entity_decode("<pre>");
+    ob_start();
+    print_r($vars);
+    $_output = ob_get_contents(); 
+    ob_end_clean();
+    echo htmlentities($_output);
+    echo html_entity_decode("</pre>");
 }
 
 /* vim: set expandtab: */

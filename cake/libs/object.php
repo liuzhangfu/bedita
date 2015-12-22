@@ -125,7 +125,7 @@ class Object {
 	}
 
 /**
- * Stop execution of the current script.  Wraps exit() making 
+ * Stop execution of the current script.  Wraps exit() making
  * testing easier.
  *
  * @param $status see http://php.net/exit for values
@@ -156,7 +156,7 @@ class Object {
 	}
 
 /**
- * Allows setting of multiple properties of the object in a single line of code.  Will only set 
+ * Allows setting of multiple properties of the object in a single line of code.  Will only set
  * properties that are part of a class declaration.
  *
  * @param array $properties An associative array containing properties and corresponding values.
@@ -186,7 +186,7 @@ class Object {
  */
 	function cakeError($method, $messages = array()) {
 		if (!class_exists('ErrorHandler')) {
-			App::import('Core', 'Error');
+			App::import('Core', 'CakeError');
 
 			if (file_exists(APP . 'error.php')) {
 				include_once (APP . 'error.php');

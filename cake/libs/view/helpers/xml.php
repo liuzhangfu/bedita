@@ -36,20 +36,20 @@ class XmlHelper extends AppHelper {
  * @access public
  * @var string
  */
-	var $encoding = 'UTF-8';
+    var $encoding = 'UTF-8';
 
-	var $Xml;
-	var $XmlElement;
+    var $Xml;
+    var $XmlElement;
 /**
  * Constructor
  *
  * @return void
  */
-	function __construct() {
-		parent::__construct();
-		$this->Xml =& new Xml();
-		$this->Xml->options(array('verifyNs' => false));
-	}
+    function __construct() {
+        parent::__construct();
+        $this->Xml = new Xml();
+        $this->Xml->options(array('verifyNs' => false));
+    }
 
 /**
  * Returns an XML document header
@@ -59,20 +59,20 @@ class XmlHelper extends AppHelper {
  * @access public
  * @link http://book.cakephp.org/view/1476/header
  */
-	function header($attrib = array()) {
-		if (Configure::read('App.encoding') !== null) {
-			$this->encoding = Configure::read('App.encoding');
-		}
+    function header($attrib = array()) {
+        if (Configure::read('App.encoding') !== null) {
+            $this->encoding = Configure::read('App.encoding');
+        }
 
-		if (is_array($attrib)) {
-			$attrib = array_merge(array('encoding' => $this->encoding), $attrib);
-		}
-		if (is_string($attrib) && strpos($attrib, 'xml') !== 0) {
-			$attrib = 'xml ' . $attrib;
-		}
+        if (is_array($attrib)) {
+            $attrib = array_merge(array('encoding' => $this->encoding), $attrib);
+        }
+        if (is_string($attrib) && strpos($attrib, 'xml') !== 0) {
+            $attrib = 'xml ' . $attrib;
+        }
 
-		return $this->Xml->header($attrib);
-	}
+        return $this->Xml->header($attrib);
+    }
 
 /**
  * Adds a namespace to any documents generated
@@ -84,9 +84,9 @@ class XmlHelper extends AppHelper {
  * @deprecated
  * @see Xml::addNs()
  */
-	function addNs($name, $url = null) {
-		return $this->Xml->addNamespace($name, $url);
-	}
+    function addNs($name, $url = null) {
+        return $this->Xml->addNamespace($name, $url);
+    }
 
 /**
  * Removes a namespace added in addNs()
@@ -96,9 +96,9 @@ class XmlHelper extends AppHelper {
  * @see Xml::removeNs()
  * @access public
  */
-	function removeNs($name) {
-		return $this->Xml->removeGlobalNamespace($name);
-	}
+    function removeNs($name) {
+        return $this->Xml->removeGlobalNamespace($name);
+    }
 
 /**
  * Generates an XML element
@@ -111,37 +111,37 @@ class XmlHelper extends AppHelper {
  * @access public
  * @link http://book.cakephp.org/view/1475/elem
  */
-	function elem($name, $attrib = array(), $content = null, $endTag = true) {
-		$namespace = null;
-		if (isset($attrib['namespace'])) {
-			$namespace = $attrib['namespace'];
-			unset($attrib['namespace']);
-		}
-		$cdata = false;
-		if (is_array($content) && isset($content['cdata'])) {
-			$cdata = true;
-			unset($content['cdata']);
-		}
-		if (is_array($content) && array_key_exists('value', $content)) {
-			$content = $content['value'];
-		}
-		$children = array();
-		if (is_array($content)) {
-			$children = $content;
-			$content = null;
-		}
+    function elem($name, $attrib = array(), $content = null, $endTag = true) {
+        $namespace = null;
+        if (isset($attrib['namespace'])) {
+            $namespace = $attrib['namespace'];
+            unset($attrib['namespace']);
+        }
+        $cdata = false;
+        if (is_array($content) && isset($content['cdata'])) {
+            $cdata = true;
+            unset($content['cdata']);
+        }
+        if (is_array($content) && array_key_exists('value', $content)) {
+            $content = $content['value'];
+        }
+        $children = array();
+        if (is_array($content)) {
+            $children = $content;
+            $content = null;
+        }
 
-		$elem =& $this->Xml->createElement($name, $content, $attrib, $namespace);
-		foreach ($children as $child) {
-			$elem->createElement($child);
-		}
-		$out = $elem->toString(array('cdata' => $cdata, 'leaveOpen' => !$endTag));
+        $elem = $this->Xml->createElement($name, $content, $attrib, $namespace);
+        foreach ($children as $child) {
+            $elem->createElement($child);
+        }
+        $out = $elem->toString(array('cdata' => $cdata, 'leaveOpen' => !$endTag));
 
-		if (!$endTag) {
-			$this->XmlElement =& $elem;
-		}
-		return $out;
-	}
+        if (!$endTag) {
+            $this->XmlElement = $elem;
+        }
+        return $out;
+    }
 
 /**
  * Create closing tag for current element
@@ -149,14 +149,14 @@ class XmlHelper extends AppHelper {
  * @return string
  * @access public
  */
-	function closeElem() {
-		$elem = (empty($this->XmlElement)) ? $this->Xml : $this->XmlElement;
-		$name = $elem->name();
-		if ($parent =& $elem->parent()) {
-			$this->XmlElement =& $parent;
-		}
-		return '</' . $name . '>';
-	}
+    function closeElem() {
+        $elem = (empty($this->XmlElement)) ? $this->Xml : $this->XmlElement;
+        $name = $elem->name();
+        if ($parent = $elem->parent()) {
+            $this->XmlElement = $parent;
+        }
+        return '</' . $name . '>';
+    }
 
 /**
  * Serializes a model resultset into XML
@@ -169,9 +169,9 @@ class XmlHelper extends AppHelper {
  * @access public
  * @link http://book.cakephp.org/view/1474/serialize
  */
-	function serialize($data, $options = array()) {
-		$options += array('attributes' => false, 'format' => 'attributes');
-		$data =& new Xml($data, $options);
-		return $data->toString($options + array('header' => false));
-	}
+    function serialize($data, $options = array()) {
+        $options += array('attributes' => false, 'format' => 'attributes');
+        $data = new Xml($data, $options);
+        return $data->toString($options + array('header' => false));
+    }
 }

@@ -4,15 +4,15 @@
  * BEdita - a semantic content management framework
  *
  * Copyright 2008-2014 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
  *
@@ -67,7 +67,7 @@ class AppController extends Controller {
     protected $currLocale = NULL; // selected UI locale
 
     protected $profiling = false;
-    
+
     /**
      * Specific per-controller model bindings
      *
@@ -81,7 +81,7 @@ class AppController extends Controller {
      * @var string
      */
     protected $fullBaseUrl = '';
-    
+
     /**
      * fields to save in history table
      *
@@ -160,8 +160,8 @@ class AppController extends Controller {
      *  for example you could set AppController::skipCheck to true avoiding user session check
      */
     protected function beforeCheckLogin() {}
-    
-    
+
+
     /**
      * Start profiler
      */
@@ -171,7 +171,7 @@ class AppController extends Controller {
             xhprof_enable();
         }
     }
-    
+
     /**
      * Stop profiler and save data
      */
@@ -183,14 +183,14 @@ class AppController extends Controller {
                 App::import('Vendor', 'xhprof_runs', array('file' => 'xhprof'.DS.'xhprof_runs.php'));
                 $xhprof_runs = new XHProfRuns_Default();
                 $profileName = str_replace(array('http://', 'https://', '.'), '', $this->fullBaseUrl);
-                $profileName .= '-'. $this->name . '-' . $this->action; 
+                $profileName .= '-'. $this->name . '-' . $this->action;
                 $run_id = $xhprof_runs->save_run($xhprof_data, $profileName);
                 $this->log('Profile run saved: ' . $run_id, 'debug');
             }
             $this->profiling = false;
         }
     }
-    
+
     final function beforeFilter() {
         $this->startProfiler();
 	    // if frontend app (not staging) and object cache is active
@@ -620,7 +620,7 @@ class AppController extends Controller {
         if(!isset($this->{$modelType})) {
             $this->{$modelType} = $this->loadModelByType($modelType);
         }
-    
+
         if (!$this->baseLevel) {
             $bindingsUsed = $this->modelBindings($this->{$modelType}, $level);
         } else {
@@ -635,7 +635,7 @@ class AppController extends Controller {
         return array("bindings_used" => $bindingsUsed, "bindings_list" => $listOfBindings);
     }
 
-    
+
     /**
      * Reorder content objects relations in array where keys are relation names
      *
@@ -662,12 +662,12 @@ class AppController extends Controller {
             } else {
                 $bindings = $this->setObjectBindings($modelClass);
             }
-            
+
             $objDetail = null;
             if ($this->BeObjectCache) {
                 $objDetail = $this->BeObjectCache->read($obj['object_id'], $bindings);
             }
-            
+
             if (empty($objDetail)) {
                 $objDetail = $this->{$modelClass}->findById($obj['object_id']);
                 if (empty($objDetail)) {
@@ -1004,7 +1004,7 @@ abstract class ModulesController extends AppController {
 
         $objects = $this->BeTree->getChildren($id, null, $filter, $order, $dir, $page, $dim);
 
-        $this->params['toolbar'] = &$objects['toolbar'] ;
+        $this->params['toolbar'] = $objects['toolbar'] ;
 
         $properties = ClassRegistry::init('Property')->find('all', array(
             'conditions' => array('object_type_id' => $filter['object_type_id']),
@@ -1711,7 +1711,7 @@ abstract class ModulesController extends AppController {
     /**
      * Default module controller forward given $action and $result.
      * Default rules are used, you may pass custom rules in $moduleRedirect array
-     * 
+     *
      * @param string $action
      * @param string $result
      * @param string $moduleRedirect
@@ -1726,7 +1726,7 @@ abstract class ModulesController extends AppController {
             $viewUrl = $referer;
         }
         $categoriesUrl = '/'. $this->moduleName . '/categories';
-        
+
         $defaultRedirect = array(
                 'addItemsToAreaSection' =>  array(
                         'OK'    => $referer,
@@ -1787,7 +1787,7 @@ abstract class ModulesController extends AppController {
         return false ;
     }
 
-    /** 
+    /**
      * Default forward for BEdita modules - to overrider in module controllers if needed
      * @see AppController::forward()
      */

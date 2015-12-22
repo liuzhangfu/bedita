@@ -1,21 +1,21 @@
 <?php
 /***************************************************************************
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2009-2014 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  ***************************************************************************/
 
 /**
@@ -37,15 +37,15 @@ class BeAuthComponent extends Object {
 
     /**
      * Set current user, if already logged in and/or valid
-     * 
+     *
      * @param object $controller
      */
     function initialize(&$controller) {
-        $conf = Configure::getInstance() ;      
+        $conf = Configure::getInstance() ;
         $this->sessionKey = $conf->session['sessionUserKey'];
-        
+
         $this->controller = $controller;
-        $this->Session = &$controller->Session;
+        $this->Session = $controller->Session;
 
         $this->initExternalServices();
         // autostart session
@@ -161,7 +161,7 @@ class BeAuthComponent extends Object {
             }
         }
     }
-    
+
     /**
      * Check whether session key is valid
      */
@@ -177,7 +177,7 @@ class BeAuthComponent extends Object {
             if ($this->Session->started()) {
                 $this->log('checkSessionKey: session not valid! ' . $this->Session->id . AppController::usedUrl());
             }
-        } 
+        }
 
         if ($res) {
 
@@ -197,8 +197,8 @@ class BeAuthComponent extends Object {
 
         return $res || $extRes;
     }
-    
-    
+
+
     /**
      * User authentication on external service (OpenID. LDAP, Shibbolet...)
      *
@@ -221,7 +221,7 @@ class BeAuthComponent extends Object {
             }
         }
     }
-    
+
     /**
      * User authentication
      *
@@ -231,7 +231,7 @@ class BeAuthComponent extends Object {
      * @param array $auth_group_name
      * @param string $authType
      * @param array $extAuthOptions
-     * @return boolean 
+     * @return boolean
      */
     public function login($userid, $password, $policy = null, $auth_group_name = array(), $authType = 'bedita', $extAuthOptions = array()) {
         if ($authType == $this->userAuth) {
@@ -258,7 +258,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Http code response for login attempt
-     * 
+     *
      * @param string $userid
      * @param string $password
      * @param array $policy (could contain parameters like maxLoginAttempts,maxNumDaysInactivity,maxNumDaysValidity)
@@ -309,7 +309,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Check policy using $policy array or config if null
-     * 
+     *
      * @param string $userid
      * @param array $u
      * @param array $policy (could contain parameters like maxLoginAttempts,maxNumDaysInactivity,maxNumDaysValidity)
@@ -358,11 +358,11 @@ class BeAuthComponent extends Object {
         } else if($daysFromLastLogin > $policy['maxNumDaysInactivity']) {
             $this->isValid = false;
             $this->log("Max num days inactivity: user: ".$userid." days: ".$daysFromLastLogin);
-            
+
         } else if($daysFromLastLogin > $policy['maxNumDaysValidity']) {
             $this->changePasswd = true;
         }
-        
+
         // check group auth
         $groups = array();
         $authorized = false;
@@ -384,15 +384,15 @@ class BeAuthComponent extends Object {
         }
 
         $u['User']['valid'] = $this->isValid; // validity may have changed
-        
+
         if($this->isValid) {
             $u["User"]["num_login_err"] = 0;
             $u["User"]["last_login"] = date('Y-m-d H:i:s');
         }
-        
+
         $data["User"] = $u["User"];
         $userModel->save($data); //, true, array('num_login_err','last_login_err','valid','last_login'));
-        
+
         if(!$this->isValid) {
             $this->logout();
             if ($this->userAuth != 'bedita') {
@@ -405,13 +405,13 @@ class BeAuthComponent extends Object {
         $userModel->compact($u) ;
         $this->user = $u;
         $this->setSessionVars();
-        
+
         return true;
     }
 
     /**
      * Change password for user and set num_login_err to 0
-     * 
+     *
      * @param string $userid
      * @param string $password
      * @return boolean
@@ -434,7 +434,7 @@ class BeAuthComponent extends Object {
         }
         return true;
     }
-    
+
     /**
      * User logout: remove session data for the user
      *
@@ -448,11 +448,11 @@ class BeAuthComponent extends Object {
         }
 
         $this->user = null ;
-        
+
         if(isset($this->Session)) {
             $this->Session->destroy();
         }
-        
+
         if(isset($this->controller)) {
             $this->controller->set($this->sessionKey, null);
         }
@@ -462,7 +462,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Check whether current user is logged in
-     * 
+     *
      * @return boolean
      */
     public function isLogged() {
@@ -514,10 +514,10 @@ class BeAuthComponent extends Object {
     public function userid() {
         return !empty($this->user['userid']) ? $this->user['userid'] : '';
     }
-    
+
     /**
      * Check whether user group is authorized
-     * 
+     *
      * @param array $groups
      * @return boolean
      */
@@ -562,12 +562,12 @@ class BeAuthComponent extends Object {
             $this->log("User ".$userData['User']['userid']." already created");
             throw new BeditaException(__("User already created",true));
         }
-        
+
         $this->userGroupModel($userData, $groups);
         if ($notify) {
             $user->Behaviors->attach('Notify');
         }
-        
+
         if (!isset($userData['User']['auth_type']) || $userData['User']['auth_type'] == 'bedita') {
             if(!$user->passwordValidation($userData['User'])) {
                 throw new BeditaException(__("Password not valid",true) . " - " . Configure::read("loginPolicy.passwordErrorMessage"));
@@ -589,7 +589,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Check confirm password
-     * 
+     *
      * @param string $password
      * @param string $confirmedPassword
      * @return boolean
@@ -603,7 +603,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Fill group data for user (set group data in $userData)
-     * 
+     *
      * @param array $userData
      * @param array $groups
      */
@@ -625,7 +625,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Update user data
-     * 
+     *
      * @param array $userData
      * @param array $groups
      * @return boolean
@@ -637,7 +637,7 @@ class BeAuthComponent extends Object {
         if($userData['User']['valid'] == '1') { // reset number of login error, if user is valid
             $userData['User']['num_login_err'] = '0';
         }
-        
+
         $user->Behaviors->attach('Notify');
         if(!$user->passwordValidation($userData['User'])) {
             throw new BeditaException(__("Password not valid",true). " - " . Configure::read("loginPolicy.passwordErrorMessage"));
@@ -652,7 +652,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Remove group
-     * 
+     *
      * @param string $groupName
      * @return boolean
      * @throws BeditaException
@@ -674,7 +674,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Save group
-     * 
+     *
      * @param array $groupData
      * @return int group id
      * @throws BeditaException
@@ -702,7 +702,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Remove user
-     * 
+     *
      * @param string $userId
      * @throws BeditaException
      * @return boolean
@@ -716,11 +716,11 @@ class BeAuthComponent extends Object {
             throw new BeditaException(__("User not present",true));
         }
         return $user->delete($u["User"]['id']);
-    }   
+    }
 
     /**
      * Get users whose sessions are still active (not expired)
-     * 
+     *
      * @return array
      */
     public function connectedUser() {
@@ -728,7 +728,7 @@ class BeAuthComponent extends Object {
         $res = array();
         $sessionDb = Configure::read('Session.database');
         if ( (Configure::read('Session.save') == "database") && !empty($sessionDb) ) {
-            $db =& ConnectionManager::getDataSource($sessionDb);
+            $db = ConnectionManager::getDataSource($sessionDb);
             $sessionModelName = Configure::read('Session.model');
             $res = ClassRegistry::init($sessionModelName)->find("all", array(
                 "fields" => array("data"),
@@ -742,7 +742,7 @@ class BeAuthComponent extends Object {
                 $timeout = Configure::read('activityTimeout');
                 if((time() - $unserialized_data['BESession']['time']) < ($timeout*60) ) {
                     $usr = $unserialized_data['BEAuthUser']['userid'];
-                    $connectedUser[]= array($usr => array_merge($unserialized_data['BEAuthUser'], 
+                    $connectedUser[]= array($usr => array_merge($unserialized_data['BEAuthUser'],
                         $unserialized_data['BESession']));
                 }
             }
@@ -752,7 +752,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Unserialize session data
-     * 
+     *
      * @param array $data
      * @return array
      */
@@ -767,15 +767,15 @@ class BeAuthComponent extends Object {
 
     /**
      * Get user session data if present, false otherwise
-     * 
+     *
      * @return mixed string|boolean
      */
     public function getUserSession() {
         if (!empty($this->user)) {
             return $this->user;
         }
-        return ($this->checkSessionKey())? $this->Session->read($this->sessionKey) : false; 
-    } 
+        return ($this->checkSessionKey())? $this->Session->read($this->sessionKey) : false;
+    }
 
     /**
      * Set session variables (i.e. userAgent, ipNumber, time, Config.language)
@@ -791,7 +791,7 @@ class BeAuthComponent extends Object {
                 $this->user["History"] = ClassRegistry::init("History")->getUserHistory($this->user["id"], $historyConf["sessionEntry"], $groupBy);
             }
             $this->Session->write($this->sessionKey, $this->user);
-            $this->Session->write(self::SESSION_INFO_KEY, array("userAgent" => $_SERVER['HTTP_USER_AGENT'], 
+            $this->Session->write(self::SESSION_INFO_KEY, array("userAgent" => $_SERVER['HTTP_USER_AGENT'],
                 "ipNumber" => $_SERVER['REMOTE_ADDR'], "time" => time()));
             if (!empty($this->user["lang"])) {
                 $this->Session->write('Config.language',$this->user["lang"]);
@@ -805,7 +805,7 @@ class BeAuthComponent extends Object {
 
     /**
      * Update session history
-     * 
+     *
      * @param array $historyItem
      * @param array $historyConf
      */
@@ -815,7 +815,7 @@ class BeAuthComponent extends Object {
         }
         $history = $this->Session->read($this->sessionKey . ".History");
         if (empty($history)) {
-            $history[] = $historyItem; 
+            $history[] = $historyItem;
         } else {
             if ($historyConf["showDuplicates"] === false) {
                 foreach ($history as $h) {
@@ -825,7 +825,7 @@ class BeAuthComponent extends Object {
                     }
                 }
             }
-            
+
             if (empty($findPath)) {
                 if (count($history) == $historyConf["sessionEntry"]) {
                     array_pop($history);
@@ -833,7 +833,7 @@ class BeAuthComponent extends Object {
                 array_unshift($history, $historyItem);
             }
         }
-        
+
         $this->Session->write($this->sessionKey . ".History" , $history);
     }
 }

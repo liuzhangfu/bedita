@@ -230,7 +230,7 @@
          */
         function setTest(&$test) {
             $this->clear();
-            $this->_test = &$test;
+            $this->_test = $test;
         }
 
         /**
@@ -251,7 +251,7 @@
          */
         function setReporter(&$reporter) {
             $this->clear();
-            $this->_reporter = &$reporter;
+            $this->_reporter = $reporter;
         }
 
         /**
@@ -271,7 +271,7 @@
          */
         function &get($resource) {
             if (! isset($this->_resources[$resource])) {
-                $this->_resources[$resource] = &new $resource();
+                $this->_resources[$resource] = new $resource();
             }
             return $this->_resources[$resource];
         }

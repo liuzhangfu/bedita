@@ -73,7 +73,7 @@ class Comment extends BeditaAnnotationModel
 
 	   
 	function beforeValidate() {
-       	$data = &$this->data[$this->name] ;
+       	$data = $this->data[$this->name] ;
         if(isset($data['url']) && $data['url'] == "http://") {
         	unset($data['url']);
         }

@@ -25,32 +25,32 @@ App::import('<?php echo $type; ?>', '<?php echo $plugin . $className;?>');
 
 <?php if ($mock and strtolower($type) == 'controller'): ?>
 class Test<?php echo $fullClassName; ?> extends <?php echo $fullClassName; ?> {
-	var $autoRender = false;
+    var $autoRender = false;
 
-	function redirect($url, $status = null, $exit = true) {
-		$this->redirectUrl = $url;
-	}
+    function redirect($url, $status = null, $exit = true) {
+        $this->redirectUrl = $url;
+    }
 }
 
 <?php endif; ?>
 class <?php echo $fullClassName; ?>TestCase extends CakeTestCase {
 <?php if (!empty($fixtures)): ?>
-	var $fixtures = array('<?php echo join("', '", $fixtures); ?>');
+    var $fixtures = array('<?php echo join("', '", $fixtures); ?>');
 
 <?php endif; ?>
-	function startTest() {
-		$this-><?php echo $className . ' =& ' . $construction; ?>
-	}
+    function startTest() {
+        $this-><?php echo $className . ' = ' . $construction; ?>
+    }
 
-	function endTest() {
-		unset($this-><?php echo $className;?>);
-		ClassRegistry::flush();
-	}
+    function endTest() {
+        unset($this-><?php echo $className;?>);
+        ClassRegistry::flush();
+    }
 
 <?php foreach ($methods as $method): ?>
-	function test<?php echo Inflector::classify($method); ?>() {
+    function test<?php echo Inflector::classify($method); ?>() {
 
-	}
+    }
 
 <?php endforeach;?>
 }

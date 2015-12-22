@@ -72,7 +72,7 @@
          */
         function skip() {
         }
-		
+
         /**
          *    Will issue a message to the reporter and tell the test
          *    case to skip if the incoming flag is true.
@@ -87,7 +87,7 @@
 				$this->_reporter->paintSkip($message . $this->getAssertionLine());
 			}
         }
-		
+
         /**
          *    Will issue a message to the reporter and tell the test
          *    case to skip if the incoming flag is false.
@@ -98,16 +98,16 @@
         function skipUnless($shouldnt_skip, $message = false) {
 			$this->skipIf(! $shouldnt_skip, $message);
         }
-		
+
         /**
          *    Used to invoke the single tests.
          *    @return SimpleInvoker        Individual test runner.
          *    @access public
          */
         function &createInvoker() {
-            $invoker = &new SimpleErrorTrappingInvoker(new SimpleInvoker($this));
+            $invoker = new SimpleErrorTrappingInvoker(new SimpleInvoker($this));
             if (version_compare(phpversion(), '5') >= 0) {
-                $invoker = &new SimpleExceptionTrappingInvoker($invoker);
+                $invoker = new SimpleExceptionTrappingInvoker($invoker);
             }
             return $invoker;
         }
@@ -124,13 +124,13 @@
 			$context = &SimpleTest::getContext();
 			$context->setTest($this);
 			$context->setReporter($reporter);
-            $this->_reporter = &$reporter;
+            $this->_reporter = $reporter;
             $reporter->paintCaseStart($this->getLabel());
 			$this->skip();
             if (! $this->_should_skip) {
                 foreach ($this->getTests() as $method) {
                     if ($reporter->shouldInvoke($this->getLabel(), $method)) {
-                        $invoker = &$this->_reporter->createInvoker($this->createInvoker());
+                        $invoker = $this->_reporter->createInvoker($this->createInvoker());
                         $invoker->before($method);
                         $invoker->invoke($method);
                         $invoker->after($method);
@@ -221,7 +221,7 @@
          *    @access public
          */
         function tell(&$observer) {
-            $this->_observers[] = &$observer;
+            $this->_observers[] = $observer;
         }
 
         /**
@@ -408,7 +408,7 @@
          *    @access public
          */
         function addTestCase(&$test_case) {
-            $this->_test_cases[] = &$test_case;
+            $this->_test_cases[] = $test_case;
         }
 
         /**
@@ -421,7 +421,7 @@
          */
         function addTestClass($class) {
             if ($this->_getBaseTestCase($class) == 'testsuite' || $this->_getBaseTestCase($class) == 'grouptest') {
-                $this->_test_cases[] = &new $class();
+                $this->_test_cases[] = new $class();
             } else {
                 $this->_test_cases[] = $class;
             }
@@ -445,7 +445,7 @@
                 $this->addTestCase(new BadTestSuite($test_file, "No runnable test cases in [$test_file]"));
                 return;
             }
-            $group = &$this->_createGroupFromClasses($test_file, $classes);
+            $group = $this->_createGroupFromClasses($test_file, $classes);
             $this->addTestCase($group);
         }
 
@@ -537,7 +537,7 @@
          */
         function &_createGroupFromClasses($title, $classes) {
             SimpleTest::ignoreParentsIfIgnored($classes);
-            $group = &new TestSuite($title);
+            $group = new TestSuite($title);
             foreach ($classes as $class) {
                 if (! SimpleTest::isIgnored($class)) {
                     $group->addTestClass($class);
@@ -584,7 +584,7 @@
             for ($i = 0, $count = count($this->_test_cases); $i < $count; $i++) {
                 if (is_string($this->_test_cases[$i])) {
                     $class = $this->_test_cases[$i];
-                    $test = &new $class();
+                    $test = new $class();
                     $test->run($reporter);
                     unset($test);
                 } else {
@@ -612,7 +612,7 @@
             return $count;
         }
     }
-    
+
     /**
      *    @deprecated
      */
@@ -670,7 +670,7 @@
             return 0;
         }
     }
-    
+
     /**
      *    @deprecated
      */

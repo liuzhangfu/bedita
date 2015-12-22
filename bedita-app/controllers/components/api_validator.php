@@ -58,7 +58,7 @@ class ApiValidatorComponent extends Object {
      * @return void
      */
     public function initialize(Controller $controller, array $settings = array()) {
-        $this->controller = &$controller;
+        $this->controller = $controller;
         $this->_set($settings);
     }
 

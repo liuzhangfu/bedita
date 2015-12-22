@@ -151,7 +151,7 @@
             $descriptions = array();
             if (is_array($args)) {
                 foreach ($args as $arg) {
-                    $dumper = &new SimpleDumper();
+                    $dumper = new SimpleDumper();
                     $descriptions[] = $dumper->describeValue($arg);
                 }
             }
@@ -325,7 +325,7 @@
             $place = count($this->_map);
             $this->_map[$place] = array();
             $this->_map[$place]["params"] = new ParametersExpectation($parameters);
-            $this->_map[$place]["content"] = &$reference;
+            $this->_map[$place]["content"] = $reference;
         }
 
         /**
@@ -409,7 +409,7 @@
             $this->_returns = array();
             $this->_return_sequence = array();
             $this->_call_counts = array();
-            $test = &$this->_getCurrentTestCase();
+            $test = $this->_getCurrentTestCase();
             $test->tell($this);
             $this->_expected_counts = array();
             $this->_max_counts = array();
@@ -808,7 +808,7 @@
             $step = $this->getCallCount($method);
             $this->_addCall($method, $args);
             $this->_checkExpectations($method, $args, $step);
-            $result = &$this->_getReturn($method, $args, $step);
+            $result = $this->_getReturn($method, $args, $step);
             return $result;
         }
         /**
@@ -825,12 +825,12 @@
         function &_getReturn($method, $args, $step) {
             if (isset($this->_return_sequence[$method][$step])) {
                 if ($this->_return_sequence[$method][$step]->isMatch($args)) {
-                    $result = &$this->_return_sequence[$method][$step]->findFirstMatch($args);
+                    $result = $this->_return_sequence[$method][$step]->findFirstMatch($args);
                     return $result;
                 }
             }
             if (isset($this->_returns[$method])) {
-                $result = &$this->_returns[$method]->findFirstMatch($args);
+                $result = $this->_returns[$method]->findFirstMatch($args);
                 return $result;
             }
             $null = null;
@@ -846,7 +846,7 @@
          *    @access private
          */
         function _checkExpectations($method, $args, $timing) {
-            $test = &$this->_getCurrentTestCase();
+            $test = $this->_getCurrentTestCase();
             if (isset($this->_max_counts[$method])) {
                 if (! $this->_max_counts[$method]->test($timing + 1)) {
                     $test->assert($this->_max_counts[$method], $timing + 1);
@@ -1039,7 +1039,7 @@
             $code .= $this->_addMethodList($methods);
             $code .= "\n";
             $code .= "    function " . $this->_mock_class . "() {\n";
-            $code .= "        \$this->_mock = &new " . $this->_mock_base . "();\n";
+            $code .= "        \$this->_mock = new " . $this->_mock_base . "();\n";
             $code .= "        \$this->_mock->disableExpectationNameChecks();\n";
             $code .= "    }\n";
             $code .= $this->_chainMockReturns();

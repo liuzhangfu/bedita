@@ -24,32 +24,32 @@
  */
 class MailMessage extends BeditaContentModel
 {
-	var $actsAs 	= array(
-			'CompactResult' 		=> array("MailGroup"),
-			'ForeignDependenceSave' => array('Content'),
-			'DeleteObject' 			=> 'objects',
-	); 
-	
-	var $hasOne= array(
-			'BEObject' => array(
-					'className'		=> 'BEObject',
-					'conditions'   => '',
-					'foreignKey'	=> 'id',
-					'dependent'		=> true
-				),
-			'Content' => array(
-					'className'		=> 'Content',
-					'conditions'   => '',
-					'foreignKey'	=> 'id',
-					'dependent'		=> true
-				)
-		);
-	
-	var $hasAndBelongsToMany = array(
-			'MailGroup' =>	array (
-					'joinTable' => 'mail_group_messages'
-				)
-	);
+    var $actsAs     = array(
+            'CompactResult'         => array("MailGroup"),
+            'ForeignDependenceSave' => array('Content'),
+            'DeleteObject'          => 'objects',
+    ); 
+    
+    var $hasOne= array(
+            'BEObject' => array(
+                    'className'     => 'BEObject',
+                    'conditions'   => '',
+                    'foreignKey'    => 'id',
+                    'dependent'     => true
+                ),
+            'Content' => array(
+                    'className'     => 'Content',
+                    'conditions'   => '',
+                    'foreignKey'    => 'id',
+                    'dependent'     => true
+                )
+        );
+    
+    var $hasAndBelongsToMany = array(
+            'MailGroup' =>  array (
+                    'joinTable' => 'mail_group_messages'
+                )
+    );
 
     protected $modelBindings = array(
         "detailed" => array(
@@ -76,72 +76,72 @@ class MailMessage extends BeditaContentModel
         )
     );
 
-	var $validate = array(
-		"subject" => array(
-			"rule" 			=> array('custom', '/.+/') ,
-			"required" 		=> true,
-			"message" 		=> "Subject required"
-		),
-		
-		"sender" => array(
-			"rule"	=> "email",
-			"required" => true,
-			"message"	=> "Please supply a valid email address."
-		),
-		"reply_to" => array(
-			"rule" => "email",
-			"allowEmpty" => true,
-			"message"	=> "Please supply a valid email address."
-		),
-		"bounce_to" => array(
-			"rule" => "email",
-			"allowEmpty" => true,
-			"message"	=> "Please supply a valid email address."
-		)
-	);
-	
-	
-	function beforeValidate() {
+    var $validate = array(
+        "subject" => array(
+            "rule"          => array('custom', '/.+/') ,
+            "required"      => true,
+            "message"       => "Subject required"
+        ),
+        
+        "sender" => array(
+            "rule"  => "email",
+            "required" => true,
+            "message"   => "Please supply a valid email address."
+        ),
+        "reply_to" => array(
+            "rule" => "email",
+            "allowEmpty" => true,
+            "message"   => "Please supply a valid email address."
+        ),
+        "bounce_to" => array(
+            "rule" => "email",
+            "allowEmpty" => true,
+            "message"   => "Please supply a valid email address."
+        )
+    );
+    
+    
+    function beforeValidate() {
 
         $this->checkDate('start_date');
         $this->checkDate('end_date');
-		$this->checkDate('start_sending');
+        $this->checkDate('start_sending');
 
-        $data = &$this->data[$this->name] ;
+        $data = $this->data[$this->name] ;
         if(!empty($data['start_sending']) && !empty($data['start_sending_time'])) {
             $data['start_sending'] .= " " . $data['start_sending_time'];
         }
-		if(empty($data['subject'])) {
-			$data['subject'] = $data['title'];
-		}
+        if(empty($data['subject'])) {
+            $data['subject'] = $data['title'];
+        }
         return true;
-	}
+    }
 
-	/**
-	 * return a complete sender email address "sender name <sender@bedita.com>
-	 *
-	 * @param int $id MailMessage.id (if not empty use MailMessage.id otherwise use the others parameters)
-	 * @param string $senderEmail
-	 * @param string $senderName
-	 * @return mixed, false if it's not find any email
-	 */
-	public function getCompleteSender($id=null, $senderEmail=null, $senderName=null) {
-		if (!empty($id)) {
-			$res = $this->find("first", array(
-				"conditions" => array("id" => $id),
-				"fields" => array("sender_name", "sender"),
-				"contain" => array()
-			));
-			if (empty($res)) {
-				return false;
-			}
-			$senderName = $res["sender_name"];
-			$senderEmail = $res["sender"];
-		}
-		if (empty($senderEmail)) {
-			return false;
-		}
-		$sender = (!empty($senderName))? $senderName . " <" . $senderEmail . ">" : $senderEmail;
-		return $sender;
-	}
+    /**
+     * return a complete sender email address "sender name <sender@bedita.com>
+     *
+     * @param int $id MailMessage.id (if not empty use MailMessage.id otherwise use the others parameters)
+     * @param string $senderEmail
+     * @param string $senderName
+     * @return mixed, false if it's not find any email
+     */
+    public function getCompleteSender($id=null, $senderEmail=null, $senderName=null) {
+        if (!empty($id)) {
+            $res = $this->find("first", array(
+                "conditions" => array("id" => $id),
+                "fields" => array("sender_name", "sender"),
+                "contain" => array()
+            ));
+            if (empty($res)) {
+                return false;
+            }
+            $senderName = $res["sender_name"];
+            $senderEmail = $res["sender"];
+        }
+        if (empty($senderEmail)) {
+            return false;
+        }
+        $sender = (!empty($senderName))? $senderName . " <" . $senderEmail . ">" : $senderEmail;
+        return $sender;
+    }
 }

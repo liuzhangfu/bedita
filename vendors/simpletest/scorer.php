@@ -423,7 +423,7 @@
          *    @param SimpleScorer $reporter       Reporter to receive events.
          */
         function SimpleReporterDecorator(&$reporter) {
-            $this->_reporter = &$reporter;
+            $this->_reporter = $reporter;
         }
 
         /**
@@ -628,7 +628,7 @@
          *    @access public
          */
         function attachReporter(&$reporter) {
-            $this->_reporters[] = &$reporter;
+            $this->_reporters[] = $reporter;
         }
 
         /**
@@ -685,7 +685,7 @@
          */
         function &createInvoker(&$invoker) {
             for ($i = 0; $i < count($this->_reporters); $i++) {
-                $invoker = &$this->_reporters[$i]->createInvoker($invoker);
+                $invoker = $this->_reporters[$i]->createInvoker($invoker);
             }
             return $invoker;
         }

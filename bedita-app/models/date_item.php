@@ -189,7 +189,7 @@ class DateItem extends BEAppModel
      * @return bool Returns `true`.
      */
     public function beforeValidate() {
-        $data = &$this->data[$this->name];
+        $data = $this->data[$this->name];
         if (empty($data['id']) && empty($data['start_date']) && empty($data['end_date']) && empty($data['duration'])) {
             // Skip save if no (valid) data is present.
             $data = array();

@@ -13,11 +13,11 @@
  */
 function smarty_function_pr($params, &$smarty)
 {
-	$vars = &$smarty->getTemplateVars();
-	if (empty($params["var"])) return ;
-	
-	// Stampa
-	pr($params["var"]);
+    $vars = $smarty->getTemplateVars();
+    if (empty($params["var"])) return ;
+    
+    // Stampa
+    pr($params["var"]);
 }
 
 /* vim: set expandtab: */

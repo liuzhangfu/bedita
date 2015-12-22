@@ -115,7 +115,7 @@ class Smarty_Internal_Template extends Smarty_Internal_TemplateBase
      */
     public function __construct($template_resource, $smarty, $_parent = null, $_cache_id = null, $_compile_id = null, $_caching = null, $_cache_lifetime = null)
     {
-        $this->smarty = &$smarty;
+        $this->smarty = $smarty;
         // Smarty parameter
         $this->cache_id = $_cache_id === null ? $this->smarty->cache_id : $_cache_id;
         $this->compile_id = $_compile_id === null ? $this->smarty->compile_id : $_compile_id;
@@ -265,13 +265,13 @@ class Smarty_Internal_Template extends Smarty_Internal_TemplateBase
             $tpl->tpl_vars = $this->tpl_vars;
             $tpl->tpl_vars['smarty'] = clone $this->tpl_vars['smarty'];
         } elseif ($parent_scope == Smarty::SCOPE_PARENT) {
-            $tpl->tpl_vars = &$this->tpl_vars;
+            $tpl->tpl_vars = $this->tpl_vars;
         } elseif ($parent_scope == Smarty::SCOPE_GLOBAL) {
             $tpl->tpl_vars = &Smarty::$global_tpl_vars;
         } elseif (($scope_ptr = $this->getScopePointer($parent_scope)) == null) {
-            $tpl->tpl_vars = &$this->tpl_vars;
+            $tpl->tpl_vars = $this->tpl_vars;
         } else {
-            $tpl->tpl_vars = &$scope_ptr->tpl_vars;
+            $tpl->tpl_vars = $scope_ptr->tpl_vars;
         }
         $tpl->config_vars = $this->config_vars;
         if (!empty($data)) {
@@ -306,13 +306,13 @@ class Smarty_Internal_Template extends Smarty_Internal_TemplateBase
             $tpl->tpl_vars = $this->tpl_vars;
             $tpl->tpl_vars['smarty'] = clone $this->tpl_vars['smarty'];
         } elseif ($parent_scope == Smarty::SCOPE_PARENT) {
-            $tpl->tpl_vars = &$this->tpl_vars;
+            $tpl->tpl_vars = $this->tpl_vars;
         } elseif ($parent_scope == Smarty::SCOPE_GLOBAL) {
             $tpl->tpl_vars = &Smarty::$global_tpl_vars;
         } elseif (($scope_ptr = $this->getScopePointer($parent_scope)) == null) {
-            $tpl->tpl_vars = &$this->tpl_vars;
+            $tpl->tpl_vars = $this->tpl_vars;
         } else {
-            $tpl->tpl_vars = &$scope_ptr->tpl_vars;
+            $tpl->tpl_vars = $scope_ptr->tpl_vars;
         }
         $tpl->config_vars = $this->config_vars;
         if (!empty($data)) {

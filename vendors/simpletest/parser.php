@@ -204,8 +204,8 @@
         function SimpleLexer(&$parser, $start = "accept", $case = false) {
             $this->_case = $case;
             $this->_regexes = array();
-            $this->_parser = &$parser;
-            $this->_mode = &new SimpleStateStack($start);
+            $this->_parser = $parser;
+            $this->_mode = new SimpleStateStack($start);
             $this->_mode_handlers = array($start => $start);
         }
         
@@ -561,8 +561,8 @@
          *    @access public
          */
         function SimpleHtmlSaxParser(&$listener) {
-            $this->_listener = &$listener;
-            $this->_lexer = &$this->createLexer($this);
+            $this->_listener = $listener;
+            $this->_lexer = $this->createLexer($this);
             $this->_tag = '';
             $this->_attributes = array();
             $this->_current_attribute = '';
@@ -587,7 +587,7 @@
          *    @static
          */
         function &createLexer(&$parser) {
-            $lexer = &new SimpleHtmlLexer($parser);
+            $lexer = new SimpleHtmlLexer($parser);
             return $lexer;
         }
         

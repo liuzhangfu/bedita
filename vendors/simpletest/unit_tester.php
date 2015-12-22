@@ -71,7 +71,7 @@
          *    @access public
          */
         function assertNull($value, $message = '%s') {
-            $dumper = &new SimpleDumper();
+            $dumper = new SimpleDumper();
             $message = sprintf(
                     $message,
                     '[' . $dumper->describeValue($value) . '] should be null');
@@ -86,7 +86,7 @@
          *    @access public
          */
         function assertNotNull($value, $message = '%s') {
-            $dumper = &new SimpleDumper();
+            $dumper = new SimpleDumper();
             $message = sprintf(
                     $message,
                     '[' . $dumper->describeValue($value) . '] should not be null');
@@ -235,7 +235,7 @@
          *    @access public
          */
         function assertReference(&$first, &$second, $message = '%s') {
-            $dumper = &new SimpleDumper();
+            $dumper = new SimpleDumper();
             $message = sprintf(
                     $message,
                     '[' . $dumper->describeValue($first) .
@@ -257,13 +257,13 @@
          *    @access public
          */
         function assertClone(&$first, &$second, $message = '%s') {
-            $dumper = &new SimpleDumper();
+            $dumper = new SimpleDumper();
             $message = sprintf(
                     $message,
                     '[' . $dumper->describeValue($first) .
                             '] and [' . $dumper->describeValue($second) .
                             '] should not be the same object');
-            $identical = &new IdenticalExpectation($first);
+            $identical = new IdenticalExpectation($first);
             return $this->assertTrue(
                     $identical->test($second) &&
                             ! SimpleTestCompatibility::isReference($first, $second),
@@ -274,7 +274,7 @@
          *    @deprecated
          */
         function assertCopy(&$first, &$second, $message = "%s") {
-            $dumper = &new SimpleDumper();
+            $dumper = new SimpleDumper();
             $message = sprintf(
                     $message,
                     "[" . $dumper->describeValue($first) .
@@ -338,7 +338,7 @@
          */
         function swallowErrors() {
             $context = &SimpleTest::getContext();
-            $queue = &$context->get('SimpleErrorQueue');
+            $queue = $context->get('SimpleErrorQueue');
             $queue->clear();
         }
 
@@ -347,7 +347,7 @@
          */
         function assertNoErrors($message = '%s') {
             $context = &SimpleTest::getContext();
-            $queue = &$context->get('SimpleErrorQueue');
+            $queue = $context->get('SimpleErrorQueue');
             return $queue->assertNoErrors($message);
         }
 
@@ -356,7 +356,7 @@
          */
         function assertError($expected = false, $message = '%s') {
             $context = &SimpleTest::getContext();
-            $queue = &$context->get('SimpleErrorQueue');
+            $queue = $context->get('SimpleErrorQueue');
             return $queue->assertError($this->_coerceExpectation($expected), $message);
         }
 
@@ -370,7 +370,7 @@
          */
         function expectError($expected = false, $message = '%s') {
             $context = &SimpleTest::getContext();
-            $queue = &$context->get('SimpleErrorQueue');
+            $queue = $context->get('SimpleErrorQueue');
             $queue->expectError($this->_coerceExpectation($expected), $message);
         }
 
@@ -384,7 +384,7 @@
          */
         function expectException($expected = false, $message = '%s') {
             $context = &SimpleTest::getContext();
-            $queue = &$context->get('SimpleExceptionTrap');
+            $queue = $context->get('SimpleExceptionTrap');
             $queue->expectException($expected, $message . $this->getAssertionLine());
         }
 

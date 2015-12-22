@@ -35,7 +35,7 @@
          *    @param SimpleTestCase $test_case  Test case to run.
          */
         function SimpleInvoker(&$test_case) {
-            $this->_test_case = &$test_case;
+            $this->_test_case = $test_case;
         }
 
         /**
@@ -94,7 +94,7 @@
          *    @param SimpleInvoker $invoker  Test method runner.
          */
         function SimpleInvokerDecorator(&$invoker) {
-            $this->_invoker = &$invoker;
+            $this->_invoker = $invoker;
         }
 
         /**

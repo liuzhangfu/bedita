@@ -27,7 +27,7 @@ class BeAuthFacebookComponent extends BeAuthComponent{
 
     public function startup(&$controller=null) {
         $this->controller = $controller;
-        $this->Session = &$controller->Session;
+        $this->Session = $controller->Session;
 
         $this->params = Configure::read("extAuthParams");
 

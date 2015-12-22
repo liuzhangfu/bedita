@@ -471,12 +471,12 @@ abstract class ApiBaseController extends FrontendController {
     private function setupAuthComponent() {
         $componentName = Configure::read('api.auth.component');
         if (!empty($componentName) && $componentName != 'ApiAuth' && !empty($this->{$componentName})) {
-            $this->ApiAuth = &$this->{$componentName};
+            $this->ApiAuth = $this->{$componentName};
         }
         if (empty($this->ApiAuth)) {
             throw new BeditaInternalErrorException('API auth component is not properly loaded in API controller');
         }
-        $this->BeAuth = &$this->ApiAuth;
+        $this->BeAuth = $this->ApiAuth;
     }
 
     /**

@@ -41,7 +41,7 @@
         
         function testReferences () {
             $thing = "Hello";
-            $thing_reference = &$thing;
+            $thing_reference = $thing;
             $thing_copy = $thing;
             $this->assertTrue(SimpleTestCompatibility::isReference(
                     $thing,
@@ -55,8 +55,8 @@
         }
         
         function testObjectReferences () {
-            $object = &new ComparisonClass();
-            $object_reference = &$object;
+            $object = new ComparisonClass();
+            $object_reference = $object;
             $object_copy = new ComparisonClass();
             $object_assignment = $object;
             $this->assertTrue(SimpleTestCompatibility::isReference(

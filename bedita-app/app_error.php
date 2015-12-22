@@ -1,25 +1,25 @@
 <?php
 /*-----8<--------------------------------------------------------------------
- * 
+ *
  * BEdita - a semantic content management framework
- * 
+ *
  * Copyright 2011-2015 ChannelWeb Srl, Chialab Srl
- * 
+ *
  * This file is part of BEdita: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied 
+ * BEdita is distributed WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License 
+ * You should have received a copy of the GNU Lesser General Public License
  * version 3 along with BEdita (see LICENSE.LGPL).
  * If not, see <http://gnu.org/licenses/lgpl-3.0.html>.
- * 
+ *
  *------------------------------------------------------------------->8-----
  */
 
-App::import('Core', 'Error');
+App::import('Core', 'CakeError');
 
 /**
  * BEdita/cake error handler (backends+frontends)
@@ -280,7 +280,7 @@ class AppError extends ErrorHandler {
 		}
 		echo $this->controller->output;
 	}
-	
+
 	public function handleSmartyException(array $messages) {
 		$this->error['message'] = 'Smarty error';
 		$this->error['details'] = $this->exception->getMessage();
@@ -289,15 +289,15 @@ class AppError extends ErrorHandler {
 
 	/**
 	 * handle ajax exception
-	 * 
-	 * @param array $messages 
+	 *
+	 * @param array $messages
 	 *				'msg' => the exception message
 	 *				'details' => the error detail
 	 *				'output' => the output type. It can be:
 	 *							'html' (default) BEdita html standard error message from elements/message.tpl
 	 *							'json' json object is built in view as:
 	 *									{
-	 *										errorMsg: exception message, 
+	 *										errorMsg: exception message,
 	 *										htmlMsg: BEdita html standard error message from see elements/message.tpl
 	 *									}
 	 *							'beditaMsg' output the BEdita html standard error message and trigger it
@@ -349,7 +349,7 @@ class AppError extends ErrorHandler {
 		$viewObj = new SmartyView($this->controller);
 		echo $viewObj->render(null, "ajax", VIEWS."errors/error_ajax.tpl");
 	}
-	
+
 	/**
 	 * @deprecated
 	 * @param array $messages
@@ -366,9 +366,9 @@ class AppError extends ErrorHandler {
 		$this->restoreDebugLevel();
 		App::import('View', "Smarty");
 		$viewObj = new SmartyView($this->controller);
-		echo $viewObj->render(null, $this->layout, VIEWS."errors/error500.tpl");				
+		echo $viewObj->render(null, $this->layout, VIEWS."errors/error500.tpl");
 	}
-	
+
 	/**
 	 * @deprecated
 	 * @param array $messages
@@ -385,9 +385,9 @@ class AppError extends ErrorHandler {
 		$this->restoreDebugLevel();
 		App::import('View', "Smarty");
 		$viewObj = new SmartyView($this->controller);
-		echo $viewObj->render(null, $this->layout, VIEWS."errors/error404.tpl");				
+		echo $viewObj->render(null, $this->layout, VIEWS."errors/error404.tpl");
 	}
-	
+
 	/**
 	 * @deprecated
 	 * @param array $messages
@@ -417,7 +417,7 @@ class AppError extends ErrorHandler {
 		$viewFile = (file_exists(VIEWS."pages".DS.$viewName.".tpl"))? VIEWS."pages".DS.$viewName.".tpl" : VIEWS."pages".DS.$viewName.".ctp";
 		echo $currentController->render(null,null,$viewFile);
 	}
-	
+
 	private function sendMail($mailMsg) {
 		$mailSupport = Configure::read('mailSupport');
 		if (!empty($mailSupport['to'])) {
@@ -426,7 +426,7 @@ class AppError extends ErrorHandler {
 			$data = array();
 			$data["status"] = "unsent";
 			$data["mail_params"] = serialize(array(
-						"sender" => $mailSupport['from'], 
+						"sender" => $mailSupport['from'],
 						"subject" => $mailSupport['subject'],
 			));
 			$data["mail_body"] = $mailMsg;
@@ -446,7 +446,7 @@ class AppError extends ErrorHandler {
 	function _outputMessage($template) {
 		$this->__outputMessage($template);
 	}
-	
+
 	function __outputMessage($template) {
 		$this->checkController();
 		$tpl = "";

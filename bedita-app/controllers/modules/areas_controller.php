@@ -23,23 +23,23 @@
  * Controller module Publications: managing of publications, sections and sessions
  *
  *
- * @version			$Revision$
- * @modifiedby 		$LastChangedBy$
- * @lastmodified	$LastChangedDate$
+ * @version         $Revision$
+ * @modifiedby      $LastChangedBy$
+ * @lastmodified    $LastChangedDate$
  *
  * $Id$
  */
 class AreasController extends ModulesController {
-	var $name = 'Areas';
+    var $name = 'Areas';
 
-	var $helpers 	= array('BeTree', 'BeToolbar');
-	var $components = array('BeTree', 'BeCustomProperty', 'BeLangText', 'BeUploadToObj', 'BeFileHandler', 'BeSecurity');
+    var $helpers    = array('BeTree', 'BeToolbar');
+    var $components = array('BeTree', 'BeCustomProperty', 'BeLangText', 'BeUploadToObj', 'BeFileHandler', 'BeSecurity');
 
-	var $uses = array('BEObject', 'Area', 'Section', 'Tree', 'User', 'Group', 'ObjectType','Category') ;
-	protected $moduleName = 'areas';
-	protected $categorizableModels = array('Section');
+    var $uses = array('BEObject', 'Area', 'Section', 'Tree', 'User', 'Group', 'ObjectType','Category') ;
+    protected $moduleName = 'areas';
+    protected $categorizableModels = array('Section');
 
-	function index($id = null, $order = '', $dir = true, $page = 1, $dim = 20) {
+    function index($id = null, $order = '', $dir = true, $page = 1, $dim = 20) {
         if ($id == null && !empty($this->params["named"]["id"])) {
             $id = $this->params["named"]["id"];
         }
@@ -83,7 +83,7 @@ class AreasController extends ModulesController {
 		$filters = $this->loadFilters('export');
 		$this->set('export_filters',$filters);
 	}
-	 
+
 	/**
 	 * load paginated contents and no paginated sections of $id publication/section
 	 *
@@ -144,136 +144,135 @@ class AreasController extends ModulesController {
         $expanded = (!empty($this->params['named']['branch'])) ? array($this->params['named']['branch']) : array();  // #632 - Create new section here issue.
         $this->set('tree', $this->Tree->getAllRoots($user['userid'], null, array('count_permission' => true), $expanded));
 
-		$parentId = null;
-		if (empty($id) && !empty($this->params['named']['id'])) {
-			$id = $this->params['named']['id'];
-		}
-		if (!empty($id)) {
-			$parentId = $this->Tree->getParent($id);
-		} else if (!empty($this->params['named']['branch'])) {
-			$parentId = $this->params['named']['branch'];
-		}
-		$this->set('parent_id', $parentId);
-		$this->set('object', null);
-	}
+        $parentId = null;
+        if (empty($id) && !empty($this->params['named']['id'])) {
+            $id = $this->params['named']['id'];
+        }
+        if (!empty($id)) {
+            $parentId = $this->Tree->getParent($id);
+        } else if (!empty($this->params['named']['branch'])) {
+            $parentId = $this->params['named']['branch'];
+        }
+        $this->set('parent_id', $parentId);
+        $this->set('object', null);
+    }
 
+     /**
+      * Add or modify area
+      */
+    function saveArea() {
+        $this->checkWriteModulePermission();
+        $new = (empty($this->data['id'])) ? true : false;
+        $this->Transaction->begin();
+        if (empty($this->data["syndicate"])) {
+            $this->data["syndicate"] = 'off';
+        }
+        $this->saveObject($this->Area);
 
-	 /**
-	  * Add or modify area
-	  */
-	function saveArea() {
-		$this->checkWriteModulePermission();
-		$new = (empty($this->data['id'])) ? true : false;
-		$this->Transaction->begin();
-		if (empty($this->data["syndicate"])) {
-			$this->data["syndicate"] = 'off';
-		}
-		$this->saveObject($this->Area);
+        $id = $this->Area->id;
+        if(!$new) {
 
-		$id = $this->Area->id;
-		if(!$new) {
+            // remove children
+            if (!empty($this->params["form"]["contentsToRemove"])) {
+                $childrenToRemove = explode(",", trim($this->params["form"]["contentsToRemove"],","));
+                foreach ($childrenToRemove as $idToRemove) {
+                    $this->Tree->removeChild($idToRemove, $id);
+                }
+            }
 
-			// remove children
-			if (!empty($this->params["form"]["contentsToRemove"])) {
-				$childrenToRemove = explode(",", trim($this->params["form"]["contentsToRemove"],","));
-				foreach ($childrenToRemove as $idToRemove) {
-					$this->Tree->removeChild($idToRemove, $id);
-				}
-			}
+            $reorder = (!empty($this->params["form"]['reorder'])) ? $this->params["form"]['reorder'] : array();
 
-			$reorder = (!empty($this->params["form"]['reorder'])) ? $this->params["form"]['reorder'] : array();
+            // add new children and reorder priority
+            foreach ($reorder as $r) {
+                if (!$this->Tree->find("first", array("conditions" => "id=".$r["id"]." AND parent_id=".$id))) {
+                    $this->Tree->appendChild($r["id"], $id);
+                }
+                if (!$this->Tree->setPriority($r['id'], $r['priority'], $id)) {
+                    throw new BeditaException( __("Error during reorder children priority", true), $r["id"]);
+                }
+            }
+        }
 
-			// add new children and reorder priority
-			foreach ($reorder as $r) {
-			 	if (!$this->Tree->find("first", array("conditions" => "id=".$r["id"]." AND parent_id=".$id))) {
-					$this->Tree->appendChild($r["id"], $id);
-				}
-				if (!$this->Tree->setPriority($r['id'], $r['priority'], $id)) {
-					throw new BeditaException( __("Error during reorder children priority", true), $r["id"]);
-				}
-			}
-		}
+        $this->Transaction->commit() ;
+        $this->userInfoMessage(__("Area saved", true)." - ".$this->data["title"]);
+        $this->eventInfo("area ". $this->data["title"]."saved");
+    }
 
-	 	$this->Transaction->commit() ;
- 		$this->userInfoMessage(__("Area saved", true)." - ".$this->data["title"]);
-		$this->eventInfo("area ". $this->data["title"]."saved");
-	}
+    /**
+     * Save/modify section.
+     */
+    function saveSection() {
 
-	/**
-	 * Save/modify section.
-	 */
-	function saveSection() {
+        $this->checkWriteModulePermission();
+        $new = (empty($this->data['id'])) ? true : false;
+        $this->Transaction->begin();
+        if (empty($this->data["syndicate"])) {
+            $this->data["syndicate"] = 'off';
+        }
+        if(empty($this->data["parent_id"])) {
+            throw new BeditaException( __("Missing parent", true));
+        }
 
-		$this->checkWriteModulePermission();
-		$new = (empty($this->data['id'])) ? true : false;
-		$this->Transaction->begin();
-		if (empty($this->data["syndicate"])) {
-			$this->data["syndicate"] = 'off';
-		}
-		if(empty($this->data["parent_id"])) {
-			throw new BeditaException( __("Missing parent", true));
-		}
+        $this->saveObject($this->Section);
+        $id = $this->Section->id;
 
-		$this->saveObject($this->Section);
-		$id = $this->Section->id;
+        // Move section in the right tree position, if necessary
+        if(!$new) {
 
-		// Move section in the right tree position, if necessary
-		if(!$new) {
+            if (!$this->BEObject->isFixed($id)) {
+                $oldParent = $this->Tree->getParent($id);
+                if($oldParent != $this->data["parent_id"]) {
+                    if(!$this->Tree->move($this->data["parent_id"], $oldParent, $id)) {
+                        throw new BeditaException( __("Error moving section in the tree", true));
+                    }
+                }
+            }
 
-			if (!$this->BEObject->isFixed($id)) {
-				$oldParent = $this->Tree->getParent($id);
-				if($oldParent != $this->data["parent_id"]) {
-					if(!$this->Tree->move($this->data["parent_id"], $oldParent, $id)) {
-						throw new BeditaException( __("Error moving section in the tree", true));
-					}
-				}
-			}
+            // save Tree.menu
+            $menu = (!empty($this->data['menu']))? 1 : 0;
+            $this->Tree->saveMenuVisibility($id, $this->data["parent_id"], $menu);
 
-			// save Tree.menu
-			$menu = (!empty($this->data['menu']))? 1 : 0;
-			$this->Tree->saveMenuVisibility($id, $this->data["parent_id"], $menu);
+            // remove children
+            if (!empty($this->params["form"]["contentsToRemove"])) {
+                $childrenToRemove = explode(",", trim($this->params["form"]["contentsToRemove"],","));
+                foreach ($childrenToRemove as $idToRemove) {
+                    $this->Tree->removeChild($idToRemove, $id);
+                }
+            }
 
-			// remove children
-			if (!empty($this->params["form"]["contentsToRemove"])) {
-				$childrenToRemove = explode(",", trim($this->params["form"]["contentsToRemove"],","));
-				foreach ($childrenToRemove as $idToRemove) {
-					$this->Tree->removeChild($idToRemove, $id);
-				}
-			}
+            $reorder = (!empty($this->params["form"]['reorder'])) ? $this->params["form"]['reorder'] : array();
 
-			$reorder = (!empty($this->params["form"]['reorder'])) ? $this->params["form"]['reorder'] : array();
+            // add new children and reorder priority
+            foreach ($reorder as $r) {
+                if (!$this->Tree->find("first", array("conditions" => "id=".$r["id"]." AND parent_id=".$id))) {
+                    $this->Tree->appendChild($r["id"], $id);
+                }
+                if (!$this->Tree->setPriority($r['id'], $r['priority'], $id)) {
+                    throw new BeditaException( __("Error during reorder children priority", true), $r["id"]);
+                }
+            }
+        }
 
-			// add new children and reorder priority
-			foreach ($reorder as $r) {
-			 	if (!$this->Tree->find("first", array("conditions" => "id=".$r["id"]." AND parent_id=".$id))) {
-					$this->Tree->appendChild($r["id"], $id);
-				}
-				if (!$this->Tree->setPriority($r['id'], $r['priority'], $id)) {
-					throw new BeditaException( __("Error during reorder children priority", true), $r["id"]);
-				}
-			}
-		}
+        $this->Transaction->commit() ;
+        $this->userInfoMessage(__("Section saved", true)." - ".$this->data["title"]);
+        $this->eventInfo("section [". $this->data["title"]."] saved");
+    }
 
-	 	$this->Transaction->commit() ;
-		$this->userInfoMessage(__("Section saved", true)." - ".$this->data["title"]);
-		$this->eventInfo("section [". $this->data["title"]."] saved");
-	}
+    function delete() {
+        if(empty($this->data['id'])) {
+            throw new BeditaException(__("No data", true));
+        }
+        $ot_id = $this->BEObject->field("object_type_id", array("BEObject.id" => $this->data['id']));
+        switch ($ot_id) {
+            case Configure::read("objectTypes.area.id"):
+                $this->deleteArea();
+                break;
 
-	function delete() {
-		if(empty($this->data['id'])) {
-			throw new BeditaException(__("No data", true));
-		}
-		$ot_id = $this->BEObject->field("object_type_id", array("BEObject.id" => $this->data['id']));
-		switch ($ot_id) {
-			case Configure::read("objectTypes.area.id"):
-				$this->deleteArea();
-				break;
-
-			case Configure::read("objectTypes.section.id"):
-				$this->deleteSection();
-				break;
-		}
-	}
+            case Configure::read("objectTypes.section.id"):
+                $this->deleteSection();
+                break;
+        }
+    }
 
     /**
      * Export section objects to a specific file format
@@ -358,88 +357,88 @@ class AreasController extends ModulesController {
         $this->Transaction->commit();
     }
 
-	private function deleteArea() {
-		$this->checkWriteModulePermission();
-		$objectsListDeleted = $this->deleteObjects("Area");
-		$this->userInfoMessage(__("Area deleted", true)." - ".$objectsListDeleted);
-		$this->eventInfo("area [". $objectsListDeleted."] deleted");
-	}
+    private function deleteArea() {
+        $this->checkWriteModulePermission();
+        $objectsListDeleted = $this->deleteObjects("Area");
+        $this->userInfoMessage(__("Area deleted", true)." - ".$objectsListDeleted);
+        $this->eventInfo("area [". $objectsListDeleted."] deleted");
+    }
 
-	private function deleteSection() {
-		$this->checkWriteModulePermission();
-		$objectsListDeleted = $this->deleteObjects("Section");
-		$this->userInfoMessage(__("Section deleted", true)." - ".$objectsListDeleted);
-		$this->eventInfo("section [". $objectsListDeleted."] deleted");
-	}
+    private function deleteSection() {
+        $this->checkWriteModulePermission();
+        $objectsListDeleted = $this->deleteObjects("Section");
+        $this->userInfoMessage(__("Section deleted", true)." - ".$objectsListDeleted);
+        $this->eventInfo("section [". $objectsListDeleted."] deleted");
+    }
 
-	 /**
-	  * Return associative array representing publications/sections tree
-	  *
-	  * @param unknown_type $data
-	  * @param unknown_type $tree
-	  */
-	private function _getTreeFromPOST(&$data, &$tree) {
-		$tree = array() ;
-		$IDs  = array() ;
-		// Creating subtrees
-		$arr = preg_split("/;/", $data) ;
-		for($i = 0 ; $i < count($arr) ; $i++) {
-			$item = array() ;
-			$tmp = split(" ", $arr[$i] ) ;
-			foreach($tmp as $val) {
-				$t  = split("=", $val) ;
-				$item[$t[0]] = ($t[1] == "null") ? null : ((integer)$t[1]) ;
-			}
-			$IDs[$item["id"]] 				= $item ;
-			$IDs[$item["id"]]["children"] 	= array() ;
-		}
-		// Creating the tree
-		foreach ($IDs as $id => $item) {
-			if(!isset($item["parent"])) {
-				$tree[] = $item ;
-				$IDs[$id] = &$tree[count($tree)-1] ;
-			}
-			if(isset($IDs[$item["parent"]])) {
-				$IDs[$item["parent"]]["children"][] = $item ;
-				$IDs[$id] = &$IDs[$item["parent"]]["children"][count($IDs[$item["parent"]]["children"])-1] ;
-			}
-		}
-		unset($IDs) ;
-	}
+     /**
+      * Return associative array representing publications/sections tree
+      *
+      * @param unknown_type $data
+      * @param unknown_type $tree
+      */
+    private function _getTreeFromPOST(&$data, &$tree) {
+        $tree = array() ;
+        $IDs  = array() ;
+        // Creating subtrees
+        $arr = preg_split("/;/", $data) ;
+        for($i = 0 ; $i < count($arr) ; $i++) {
+            $item = array() ;
+            $tmp = split(" ", $arr[$i] ) ;
+            foreach($tmp as $val) {
+                $t  = split("=", $val) ;
+                $item[$t[0]] = ($t[1] == "null") ? null : ((integer)$t[1]) ;
+            }
+            $IDs[$item["id"]]               = $item ;
+            $IDs[$item["id"]]["children"]   = array() ;
+        }
+        // Creating the tree
+        foreach ($IDs as $id => $item) {
+            if(!isset($item["parent"])) {
+                $tree[] = $item ;
+                $IDs[$id] = $tree[count($tree)-1] ;
+            }
+            if(isset($IDs[$item["parent"]])) {
+                $IDs[$item["parent"]]["children"][] = $item ;
+                $IDs[$id] = $IDs[$item["parent"]]["children"][count($IDs[$item["parent"]]["children"])-1] ;
+            }
+        }
+        unset($IDs) ;
+    }
 
-	public function categories() {
-		$this->showCategories($this->Section);
-	}
-	
+    public function categories() {
+        $this->showCategories($this->Section);
+    }
+
     protected function forward($action, $result) {
         $moduleRedirect = array(
             'saveArea' => array(
-                'OK'	=> "/areas/view/{$this->Area->id}",
-                'ERROR'	=> $this->referer()
+                'OK'    => "/areas/view/{$this->Area->id}",
+                'ERROR' => $this->referer()
             ),
-            'saveSection'	=> 	array(
-                'OK'	=> "/areas/view/{$this->Section->id}",
-                'ERROR'	=> $this->referer()
+            'saveSection'   =>  array(
+                'OK'    => "/areas/view/{$this->Section->id}",
+                'ERROR' => $this->referer()
             ),
-            'delete'	=> 	array(
-                'OK'	=> '/areas',
-                'ERROR'	=> $this->referer()
+            'delete'    =>  array(
+                'OK'    => '/areas',
+                'ERROR' => $this->referer()
             ),
-            'deleteSection'	=> 	array(
-                'OK'	=> '/areas',
-                'ERROR'	=> $this->referer()
+            'deleteSection' =>  array(
+                'OK'    => '/areas',
+                'ERROR' => $this->referer()
             ),
-            'deleteArea'	=> 	array(
-                'OK'	=> '/areas',
-                'ERROR'	=> $this->referer()
+            'deleteArea'    =>  array(
+                'OK'    => '/areas',
+                'ERROR' => $this->referer()
             ),
-            'import'	=> 	array(
-                'OK'	=> "/areas/view/{$this->Section->id}",
-                'ERROR'	=> $this->referer()
+            'import'    =>  array(
+                'OK'    => "/areas/view/{$this->Section->id}",
+                'ERROR' => $this->referer()
             ),
-            'export'	=> 	array(
-                'OK'	=> $this->referer(),
-                'ERROR'	=> $this->referer()
+            'export'    =>  array(
+                'OK'    => $this->referer(),
+                'ERROR' => $this->referer()
             ),
         );
         return $this->moduleForward($action, $result, $moduleRedirect);

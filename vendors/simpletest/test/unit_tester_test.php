@@ -28,20 +28,20 @@
         }
         
         function testReferenceAssertionOnObjects() {
-            $a = &new ReferenceForTesting();
-            $b = &$a;
+            $a = new ReferenceForTesting();
+            $b = $a;
             $this->assertReference($a, $b);
         }
         
         function testReferenceAssertionOnScalars() {
             $a = 25;
-            $b = &$a;
+            $b = $a;
             $this->assertReference($a, $b);
         }
         
         function testCloneOnObjects() {
-            $a = &new ReferenceForTesting();
-            $b = &new ReferenceForTesting();
+            $a = new ReferenceForTesting();
+            $b = new ReferenceForTesting();
             $this->assertClone($a, $b);
         }
         

@@ -54,13 +54,13 @@
          *    @access public
          */
         function run(&$reporter) {
-            $browser = &$this->_createBrowser();
+            $browser = $this->_createBrowser();
             $xml = $browser->get($this->_url);
             if (! $xml) {
                 trigger_error('Cannot read remote test URL [' . $this->_url . ']');
                 return false;
             }
-            $parser = &$this->_createParser($reporter);
+            $parser = $this->_createParser($reporter);
             if (! $parser->parse($xml)) {
                 trigger_error('Cannot parse incoming XML from [' . $this->_url . ']');
                 return false;
@@ -75,7 +75,7 @@
          *    @access protected
          */
         function &_createBrowser() {
-            $browser = &new SimpleBrowser();
+            $browser = new SimpleBrowser();
             return $browser;
         }
         
@@ -86,7 +86,7 @@
          *    @access protected
          */
         function &_createParser(&$reporter) {
-            $parser = &new SimpleTestXmlParser($reporter);
+            $parser = new SimpleTestXmlParser($reporter);
             return $parser;
         }
         
@@ -97,14 +97,14 @@
          */
         function getSize() {
             if ($this->_size === false) {
-                $browser = &$this->_createBrowser();
+                $browser = $this->_createBrowser();
                 $xml = $browser->get($this->_dry_url);
                 if (! $xml) {
                     trigger_error('Cannot read remote test URL [' . $this->_dry_url . ']');
                     return false;
                 }
-                $reporter = &new SimpleReporter();
-                $parser = &$this->_createParser($reporter);
+                $reporter = new SimpleReporter();
+                $parser = $this->_createParser($reporter);
                 if (! $parser->parse($xml)) {
                     trigger_error('Cannot parse incoming XML from [' . $this->_dry_url . ']');
                     return false;

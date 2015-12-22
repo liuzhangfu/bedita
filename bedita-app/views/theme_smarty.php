@@ -23,24 +23,24 @@
  * ThemeSmartyView
  *
  *
- * @version			$Revision$
- * @modifiedby 		$LastChangedBy$
- * @lastmodified	$LastChangedDate$
+ * @version         $Revision$
+ * @modifiedby      $LastChangedBy$
+ * @lastmodified    $LastChangedDate$
  *
  * $Id$
  */
 App::import('View', 'Smarty');
 class ThemeSmartyView extends SmartyView {
-		/**
+        /**
  * Constructor for ThemeView sets $this->theme.
  *
  * @param Controller $controller Controller object to be rendered.
  * @param boolean $register Should the view be registered in the registry.
  */
-	function __construct(&$controller, $register = true) {
-		parent::__construct($controller, $register);
-		$this->theme =& $controller->theme;
-	}
+    function __construct(&$controller, $register = true) {
+        parent::__construct($controller, $register);
+        $this->theme = $controller->theme;
+    }
 
 /**
  * Return all possible paths to find view files in order
@@ -51,24 +51,24 @@ class ThemeSmartyView extends SmartyView {
  * @access protected
  * @todo Make theme path building respect $cached parameter.
  */
-	function _paths($plugin = null, $cached = true) {
-		$paths = parent::_paths($plugin, $cached);
-		$themePaths = array();
+    function _paths($plugin = null, $cached = true) {
+        $paths = parent::_paths($plugin, $cached);
+        $themePaths = array();
 
-		if (!empty($this->theme)) {
-			$count = count($paths);
-			for ($i = 0; $i < $count; $i++) {
-				if (strpos($paths[$i], DS . 'plugins' . DS) === false
-					&& strpos($paths[$i], DS . 'libs' . DS . 'view') === false) {
-						if ($plugin) {
-							$themePaths[] = $paths[$i] . 'themed'. DS . $this->theme . DS . 'plugins' . DS . $plugin . DS;
-						}
-						$themePaths[] = $paths[$i] . 'themed'. DS . $this->theme . DS;
-					}
-			}
-			$paths = array_merge($themePaths, $paths);
-		}
-		return $paths;
-	}
+        if (!empty($this->theme)) {
+            $count = count($paths);
+            for ($i = 0; $i < $count; $i++) {
+                if (strpos($paths[$i], DS . 'plugins' . DS) === false
+                    && strpos($paths[$i], DS . 'libs' . DS . 'view') === false) {
+                        if ($plugin) {
+                            $themePaths[] = $paths[$i] . 'themed'. DS . $this->theme . DS . 'plugins' . DS . $plugin . DS;
+                        }
+                        $themePaths[] = $paths[$i] . 'themed'. DS . $this->theme . DS;
+                    }
+            }
+            $paths = array_merge($themePaths, $paths);
+        }
+        return $paths;
+    }
 
 }

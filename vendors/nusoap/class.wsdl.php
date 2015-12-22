@@ -711,7 +711,7 @@ class wsdl extends nusoap_base {
 		if (isset($this->schemas[$ns])) {
 			$this->debug("in getTypeDef: have schema for namespace $ns");
 			for ($i = 0; $i < count($this->schemas[$ns]); $i++) {
-				$xs = &$this->schemas[$ns][$i];
+				$xs = $this->schemas[$ns][$i];
 				$t = $xs->getTypeDef($type);
 				$this->appendDebug($xs->getDebug());
 				$xs->clearDebug();
@@ -1136,7 +1136,7 @@ class wsdl extends nusoap_base {
 		// set input params
 		$xml = '';
 		if (isset($opData[$direction]['parts']) && sizeof($opData[$direction]['parts']) > 0) {
-			$parts = &$opData[$direction]['parts'];
+			$parts = $opData[$direction]['parts'];
 			$part_count = sizeof($parts);
 			$style = $opData['style'];
 			$use = $opData[$direction]['use'];

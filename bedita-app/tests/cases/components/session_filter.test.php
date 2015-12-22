@@ -52,7 +52,7 @@ class SessionFilterComponentTest extends BeditaTestCase {
         $this->assertTrue(isset($_SESSION));
 
         // setup session filter
-        $this->SessionFilter =& $this->controller->SessionFilter;
+        $this->SessionFilter = $this->controller->SessionFilter;
         $this->SessionFilter->initialize($this->controller);
         $this->SessionFilter->startup($this->controller);
         $sessionKeyExpected = 'beditaFilter.DummyTest.testAction';

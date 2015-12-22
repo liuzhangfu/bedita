@@ -16,15 +16,15 @@ function smarty_function_array_add($params, &$smarty)
     if (empty($params["var"])) {
         throw new SmartyException("assign_array: missing 'var' parameter");
     }
-	$var = @$params["var"] ;
+    $var = @$params["var"] ;
     unset($params["var"]);
 
-	$vs = &$smarty->getTemplateVars() ;
-	if(@is_array($vs[$var])) {
-		foreach($params as $key => $value) $vs[$var][$key] = $value ;
-	} else {
-		$smarty->assign($var, $params );
-	}
+    $vs = $smarty->getTemplateVars() ;
+    if(@is_array($vs[$var])) {
+        foreach($params as $key => $value) $vs[$var][$key] = $value ;
+    } else {
+        $smarty->assign($var, $params );
+    }
 }
 
 /* vim: set expandtab: */
