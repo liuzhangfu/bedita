@@ -10,9 +10,9 @@ php:
 before_script:
     - mysql -e 'CREATE DATABASE bedita;'
     - mysql -e 'CREATE DATABASE bedita_test;'
-    - mysql --user=travis bedita < bedita-app/config/sql/bedita_mysql_schema.sql
+    - mysql --user=travis bedita < bedita-app/config/sql/bedita_mysqli_schema.sql
     - mysql --user=travis bedita < bedita-app/config/sql/bedita_init_data.sql
-    - mysql --user=travis bedita_test < bedita-app/config/sql/bedita_mysql_schema.sql
+    - mysql --user=travis bedita_test < bedita-app/config/sql/bedita_mysqli_schema.sql
     - mysql --user=travis bedita_test < bedita-app/config/sql/bedita_init_data.sql
     - chmod -R 777 ./bedita-app/tmp
     - cp ./bedita-app/config/core.php.sample ./bedita-app/config/core.php
