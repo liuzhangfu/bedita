@@ -49,13 +49,27 @@
 	 * @param array $db
 	 * @param array $res
 	 */
-	private function mysqlInfo($db, array& $res) {
-		if ($cid = @mysqli_connect($db->config['host'], $db->config['login'], $db->config['password'])) {
-			$res['dbServer'] = @mysqli_get_server_info($cid);
-			$res['dbClient'] = @mysqli_get_client_info();
+	private function mysqlInfo($db, array &$res) {
+		if ($cid = @mysql_connect($db->config['host'], $db->config['login'], $db->config['password'])) {
+			$res['dbServer'] = @mysql_get_server_info($cid);
+			$res['dbClient'] = @mysql_get_client_info();
 			@mysql_close($cid);
 		}
 	}
+
+    /**
+     * info for mysqli connection
+     *
+     * @param array $db
+     * @param array $res
+     */
+    private function mysqliInfo($db, array &$res) {
+        if ($cid = @mysqli_connect($db->config['host'], $db->config['login'], $db->config['password'])) {
+            $res['dbServer'] = @mysqli_get_server_info($cid);
+            $res['dbClient'] = @mysqli_get_client_info();
+            @mysqli_close($cid);
+        }
+    }
 
 	/**
 	 * info for postgres connection
