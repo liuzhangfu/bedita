@@ -20,7 +20,7 @@ UL, LI {padding:0px; margin:0px;}
 
 LI UL LI {padding-left:2em;}
 
-label {font-weight:bold; color:#000; padding-right:5px}
+label {font-weight:bold; color:#000; padding-right:5px; -webkit-print-color-adjust: exact; /* Always print background color. */}
 
 LI {padding:2px; list-style:none; border-top:1px solid silver;}
 
@@ -28,7 +28,6 @@ P {margin:0px; padding:0px; }
 
 TABLE {
 	border-collapse:collapse;
-	
 }
 TD, TH {padding:5px; border:1px solid silver; vertical-align:top}
 
